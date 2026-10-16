@@ -10,8 +10,8 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/Jose0213/otp-bridge/actions/workflows/ci.yml"><img src="https://github.com/Jose0213/otp-bridge/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
   <a href="https://github.com/Jose0213/otp-bridge/releases/latest"><img src="https://img.shields.io/github/v/release/Jose0213/otp-bridge?label=release" alt="Latest release"></a>
+  <a href="https://github.com/Jose0213/otp-bridge/releases"><img src="https://img.shields.io/github/downloads/Jose0213/otp-bridge/total" alt="Downloads"></a>
   <a href="LICENSE"><img src="https://img.shields.io/github/license/Jose0213/otp-bridge" alt="MIT license"></a>
   <img src="https://img.shields.io/badge/platform-Windows%2010%20%7C%2011-blue" alt="Windows 10 and 11">
   <img src="https://img.shields.io/badge/python-3.9%2B-blue" alt="Python 3.9+">

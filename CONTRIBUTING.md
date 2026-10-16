@@ -11,8 +11,8 @@ The most useful contribution is a message that OTP Bridge got wrong. Open a [mis
 ```bash
 git clone https://github.com/Jose0213/otp-bridge
 cd otp-bridge
-pip install -e ".[dev]"
-pytest
+pip install -e ".[dev]" ruff
+python tools/check.py
 ```
 
 To build `OtpBridge.exe` yourself:
@@ -22,7 +22,7 @@ pip install -e ".[build]"
 pyinstaller packaging/OtpBridge.spec
 ```
 
-The exe lands in `dist/`.
+The exe lands in `dist/`. `python tools/release.py --dry-run` does the same after running the checks, and also smoke-tests the build.
 
 Run the app from source with `python -m otp_bridge`. Settings and the log are in `%APPDATA%\otp-bridge\`.
 
@@ -41,7 +41,7 @@ Run the app from source with `python -m otp_bridge`. Settings and the log are in
 
 - Keep changes focused. One fix or feature per PR.
 - Add or update tests. Every change to `extract.py` needs a test case in `tests/test_extract.py`.
-- Run `pytest` and `ruff check --select E4,E7,E9,F src tests` before opening the PR.
+- Run `python tools/check.py` (lint and tests) before opening the PR, and paste its last line into the PR. The project doesn't use hosted CI, so this is how changes get checked.
 - Never log, store, or send message text or codes anywhere other than the local clipboard and the focused window.
 
 ## Porting to macOS or Linux
@@ -50,4 +50,8 @@ Only `win.py` is Windows-specific: the global hotkey, typing into the focused wi
 
 ## Releases
 
-Maintainers bump `__version__` in `src/otp_bridge/__init__.py`, update `CHANGELOG.md`, and push a `vX.Y.Z` tag. CI builds the `.exe` and attaches it to the GitHub release.
+Releases are built on a maintainer's Windows machine:
+
+1. Bump `__version__` in `src/otp_bridge/__init__.py` and add a matching `## [X.Y.Z]` section to `CHANGELOG.md`. Commit and push to `main`.
+2. Run `python tools/release.py --dry-run` to run the checks, build the exe, and preview the release notes.
+3. Run `python tools/release.py` to tag `vX.Y.Z`, push the tag, and publish the GitHub release with `OtpBridge.exe` and `SHA256SUMS.txt`.

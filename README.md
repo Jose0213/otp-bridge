@@ -73,7 +73,7 @@ The first time OTP Bridge runs, Windows Firewall may ask whether to allow it on 
 1. **Install** OTP Bridge (above) and make sure the tray icon is showing.
 2. **Choose a connection mode** (below). If your phone and PC share Wi-Fi, the default direct mode needs no setup.
 3. **Get your setup values.** Right-click the tray icon, choose **Phone setup…**, and click any value to copy it.
-4. **Set up your phone** using the [iPhone](#iphone-ios-17-or-later) or [Android](#android) steps.
+4. **Set up your phone.** On iPhone, the [ready-made shortcut](#quick-setup-with-the-ready-made-shortcut-recommended) takes about two minutes. Android steps are [below](#android).
 5. **Test it.** Text yourself `Your test code is 123456` from another phone, or use a site's "send code" button. The code should appear in a notification within a couple of seconds.
 
 ## Connection modes
@@ -97,6 +97,21 @@ Run `otp-bridge setup --direct-only` to turn relay mode off again.
 ## Phone setup
 
 ### iPhone (iOS 17 or later)
+
+#### Quick setup with the ready-made shortcut (recommended)
+
+1. On your iPhone, open **[Send to OTP Bridge](https://www.icloud.com/shortcuts/8952a3cbdf854419b68fcf5488eef1fe)** and tap **Add Shortcut**.
+2. It asks two questions. Answer them with the values from **Phone setup** on your PC:
+   - **Your PC's address**: the URL, for example `http://192.168.1.20:9233/otp`
+   - **Your token**: the token only, without `Bearer`
+3. In Shortcuts, go to the **Automation** tab, tap **+**, and choose **Message**.
+4. Under **Message Contains**, enter `code`. Choose **Run Immediately** (on newer iOS, turn **Confirm Before Run** off). Tap **Next**, then **New Blank Automation**. iOS shows a short notification each time it runs; see [Troubleshooting](#troubleshooting) to quiet it.
+5. Tap **Add Action**, search for **Run Shortcut**, and choose **Send to OTP Bridge**. Set its **Input** to the **Message** variable, then tap it and choose **Content**.
+6. Text yourself `Your test code is 123456`. The code should appear on your PC within a couple of seconds.
+
+With this shortcut the PC notification says "One-time code" rather than who the text came from. For relay mode, or to include the sender, use the manual setup below.
+
+#### Manual setup
 
 1. Open **Shortcuts**, go to the **Automation** tab, tap **+**, and choose **Message**. It's in the list of triggers, not in the actions search.
 2. Under **Message Contains**, enter `code`. This also matches "passcode". Leave **Sender** as anyone.
@@ -215,7 +230,7 @@ To build your own sender, send `POST /otp` with `Authorization: Bearer <token>` 
 
 ## Contributing
 
-Contributions are welcome, especially missed-code reports, macOS and Linux ports, and a one-tap iPhone shortcut. See [CONTRIBUTING.md](CONTRIBUTING.md), and report security issues privately as described in [SECURITY.md](SECURITY.md).
+Contributions are welcome, especially missed-code reports and macOS and Linux ports. See [CONTRIBUTING.md](CONTRIBUTING.md), and report security issues privately as described in [SECURITY.md](SECURITY.md).
 
 ## License
 

@@ -60,8 +60,6 @@ def make_handler(cfg: dict, on_code):
             self.wfile.write(data)
 
         def _authorized(self, raw: str) -> bool:
-            if not _ip_allowed(self.client_address[0], cfg["allow_public_ips"]):
-                return False
             auth = self.headers.get("Authorization", "").strip()
             if auth[:7].lower() == "bearer ":
                 supplied = auth[7:]
@@ -73,10 +71,11 @@ def make_handler(cfg: dict, on_code):
             supplied = "".join(supplied.split())
             if hmac.compare_digest(supplied.encode(), token):
                 return True
-            # Describe what arrived without logging any secret: header names and lengths only.
-            log.warning("bad token from %s: headers=%s, auth=%d chars, scheme=%r, token part=%d chars (expected %d)",
-                        self.client_address[0], sorted(self.headers.keys()), len(auth),
-                        auth.split(" ", 1)[0][:10] if auth else "", len(supplied), len(token))
+            # Describe what arrived without logging any part of a secret.
+            scheme = "none" if not auth else ("bearer" if auth[:7].lower() == "bearer " else "other")
+            log.warning("bad token from %s: headers=%s, auth scheme=%s, token supplied=%s",
+                        self.client_address[0], sorted(self.headers.keys()), scheme,
+                        "yes" if supplied else "no")
             return False
 
         def do_GET(self):
@@ -88,8 +87,14 @@ def make_handler(cfg: dict, on_code):
         def do_POST(self):
             if self.path.rstrip("/") != "/otp":
                 return self._reply(404)
-            length = int(self.headers.get("Content-Length") or 0)
-            if length > MAX_BODY:
+            if not _ip_allowed(self.client_address[0], cfg["allow_public_ips"]):
+                log.warning("rejected request from %s", self.client_address[0])
+                return self._reply(401, {"error": "unauthorized"})
+            try:
+                length = int(self.headers.get("Content-Length", ""))
+            except ValueError:
+                return self._reply(411)
+            if not 0 <= length <= MAX_BODY:
                 return self._reply(413)
             raw = self.rfile.read(length).decode("utf-8", "replace")
             if not self._authorized(raw):

@@ -23,7 +23,7 @@ A Mac fills in text-message codes from an iPhone automatically. Windows has noth
 
 When a text with a code arrives, your phone forwards it to your PC. OTP Bridge pulls out the code, copies it to the clipboard, and shows a notification. Press **Ctrl+Alt+O** to type it into whatever field you're in.
 
-<p align="center"><img src="docs/pc/notification.png" width="363" alt="Windows notification: Code from Example, 482913 copied, Ctrl+Alt+O to type it"></p>
+<p align="center"><img src="docs/pc/notification.png" width="300" alt="Windows notification: Code from Example, 482913 copied, Ctrl+Alt+O to type it"></p>
 
 ```mermaid
 flowchart LR
@@ -76,7 +76,7 @@ The first time OTP Bridge runs, Windows Firewall may ask whether to allow it on 
 2. **Choose a connection mode** (below). If your phone and PC share Wi-Fi, the default direct mode needs no setup.
 3. **Get your setup values.** Right-click the tray icon, choose **Phone setup…**, and click any value to copy it.
 
-   <img src="docs/pc/setup-page.png" width="560" alt="The Phone setup page, with example addresses and YOUR-TOKEN in place of a real token">
+   <img src="docs/pc/setup-page.png" width="420" alt="The Phone setup page, with example addresses and YOUR-TOKEN in place of a real token">
 
 4. **Set up your phone** using the [iPhone](#iphone-ios-27) or [Android](#android) steps.
 5. **Test it.** Text yourself `Your test code is 123456` from another phone, or use a site's "send code" button. The code should appear in a notification within a couple of seconds.
@@ -115,9 +115,10 @@ On iOS 27 an automation is a shortcut with a trigger at the top: one shortcut ru
 4. Tap the arrow next to **where** in the trigger at the top. Turn **Automation** on (shared shortcuts arrive with it off) and make sure **Confirm Before Run** is off.
 5. Tap **▶**. `{"code": null}` means it reached your PC and the token works. Then text yourself `Your test code is 123456`.
 
-Everything else, including the message trigger and the request, is already set up. To build it yourself instead, or to see what each part does, follow the steps below.
+Everything else, including the message trigger and the request, is already set up. To build it yourself instead, or to see what each part does, open the steps below.
 
-#### Build it yourself
+<details>
+<summary><b>Build it yourself</b> (8 steps with screenshots)</summary>
 
 <table>
 <tr>
@@ -126,7 +127,7 @@ Everything else, including the message trigger and the request, is already set u
 **1. Create the trigger.** Make a new shortcut and add the **Message** trigger. Set **Message contains** to `code`.
 
 </td>
-<td><img src="docs/ios27/01-message-trigger.png" width="220" alt="Shortcut with the When I receive a message trigger, Message contains code"></td>
+<td><img src="docs/ios27/01-message-trigger.png" width="150" alt="Shortcut with the When I receive a message trigger, Message contains code"></td>
 </tr>
 <tr>
 <td valign="top">
@@ -134,7 +135,7 @@ Everything else, including the message trigger and the request, is already set u
 **2. Add your PC's address.** Search for **Text**, add it, and type the URL from Phone setup, for example `http://192.168.1.20:9233/otp`. It must start with `http://`.
 
 </td>
-<td><img src="docs/ios27/02-address-text.png" width="220" alt="A Text action containing the PC address"></td>
+<td><img src="docs/ios27/02-address-text.png" width="150" alt="A Text action containing the PC address"></td>
 </tr>
 <tr>
 <td valign="top">
@@ -142,7 +143,7 @@ Everything else, including the message trigger and the request, is already set u
 **3. Add your token.** Add a second **Text** action containing only the token, without `Bearer`.
 
 </td>
-<td><img src="docs/ios27/03-token-text.png" width="220" alt="A second Text action containing the token"></td>
+<td><img src="docs/ios27/03-token-text.png" width="150" alt="A second Text action containing the token"></td>
 </tr>
 <tr>
 <td valign="top">
@@ -150,7 +151,7 @@ Everything else, including the message trigger and the request, is already set u
 **4. Add the request.** Search for **Get Contents of URL** and add it. Tap its URL, choose **Select Variable**, and tap the **first** Text action, the address. Both actions are called "Text", so make sure you tap the right one.
 
 </td>
-<td><img src="docs/ios27/04b-select-variable.png" width="220" alt="Select Variable mode, tapping the first Text action"><br><img src="docs/ios27/04c-url-linked.png" width="220" alt="Get contents of Text, linked to the address"></td>
+<td><img src="docs/ios27/04b-select-variable.png" width="150" alt="Select Variable mode, tapping the first Text action"><br><img src="docs/ios27/04c-url-linked.png" width="150" alt="Get contents of Text, linked to the address"></td>
 </tr>
 <tr>
 <td valign="top">
@@ -158,7 +159,7 @@ Everything else, including the message trigger and the request, is already set u
 **5. Set the method.** Change **GET** to **POST**. You can also add the header `Authorization` = `Bearer` + the token, but iOS 27 may not send it, so step 6 puts the token in the body as well.
 
 </td>
-<td><img src="docs/ios27/05-method-header.png" width="220" alt="Method POST with an Authorization header"></td>
+<td><img src="docs/ios27/05-method-header.png" width="150" alt="Method POST with an Authorization header"></td>
 </tr>
 <tr>
 <td valign="top">
@@ -171,7 +172,7 @@ Everything else, including the message trigger and the request, is already set u
 Key names can be in any letter case.
 
 </td>
-<td><img src="docs/ios27/06b-body-content.png" width="220" alt="Choosing Content from the Message variable"><br><img src="docs/ios27/07-token-in-body.png" width="220" alt="Body with Text set to Content and Token set to the token"></td>
+<td><img src="docs/ios27/06b-body-content.png" width="150" alt="Choosing Content from the Message variable"><br><img src="docs/ios27/07-token-in-body.png" width="150" alt="Body with Text set to Content and Token set to the token"></td>
 </tr>
 <tr>
 <td valign="top">
@@ -179,7 +180,7 @@ Key names can be in any letter case.
 **7. Check that the trigger is on.** Tap the arrow next to **where** in the trigger to show its settings. **Automation** must be on and **Confirm Before Run** off.
 
 </td>
-<td><img src="docs/ios27/08-automation-toggle.png" width="220" alt="Trigger expanded, Automation on and Confirm Before Run off"></td>
+<td><img src="docs/ios27/08-automation-toggle.png" width="150" alt="Trigger expanded, Automation on and Confirm Before Run off"></td>
 </tr>
 <tr>
 <td valign="top">
@@ -190,6 +191,8 @@ Key names can be in any letter case.
 <td></td>
 </tr>
 </table>
+
+</details>
 
 To also catch texts like "Your OTP is…", add a second **Message** trigger with `OTP`. Duplicate forwards of the same code are ignored. If you use Tailscale, turn on **VPN On Demand** in the Tailscale app so the phone stays connected.
 

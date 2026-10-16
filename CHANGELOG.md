@@ -8,9 +8,6 @@ All notable changes to this project are documented here. The format follows [Kee
 - JSON keys from the phone are matched in any letter case. iOS Shortcuts capitalizes them, so `Text` and `Sender` were ignored and every code came back `null`.
 - Phone setup no longer lists virtual adapters (WSL, Hyper-V, Docker, VMs) that a phone can't reach, and the Tailscale address is listed first.
 
-### Added
-- A ready-made iPhone shortcut, "Send to OTP Bridge", that asks for your PC's address and token when you add it.
-
 ### Changed
 - The iPhone setup steps match current iOS.
 

@@ -11,24 +11,10 @@ When a text with a code arrives, your phone forwards it to OTP Bridge on your co
 
 ## Install
 
-### Download the .exe (no Python needed)
-
-1. Download `OtpBridge.exe` from the [latest release](https://github.com/Jose0213/otp-bridge/releases/latest) and put it somewhere permanent, such as `%LOCALAPPDATA%\Programs\OTP Bridge\`.
-2. Double-click it. Look for the blue icon in the tray.
-3. To start it when you sign in, open a terminal in that folder and run:
-
-   ```powershell
-   .\OtpBridge.exe install-startup
-   ```
-
-Every command below works the same way: use `.\OtpBridge.exe` in place of `otp-bridge`. Windows SmartScreen may warn the first time because the exe isn't code-signed; choose **More info**, then **Run anyway**.
-
-### Install with Python
-
 You need Python 3.9 or newer.
 
 ```bash
-pipx install git+https://github.com/Jose0213/otp-bridge
+pipx install git+https://github.com/jose0213/otp-bridge
 ```
 
 (`pip install` works too.) Then:
@@ -38,9 +24,7 @@ otp-bridge install-startup
 otp-bridge
 ```
 
-The first command makes OTP Bridge start when you sign in. The second starts it now; look for the blue icon in the tray.
-
-The first time OTP Bridge runs, Windows Firewall may ask whether to allow it on networks. Allow it on **private** networks. Relay mode doesn't need this.
+The first command makes OTP Bridge start when you sign in. The second starts it now; look for the blue icon in the tray. The first time it runs, Windows Firewall may ask whether to allow Python on networks. Allow it on **private** networks. Relay mode doesn't need this.
 
 ## Choose how your phone reaches your PC
 
@@ -116,7 +100,7 @@ Pull requests are welcome, especially for:
 
 - better code detection: add the message to `tests/test_extract.py`, with any personal details replaced
 - macOS and Linux support for the tray, hotkey, and typing (`win.py` is the only Windows-specific module)
-- a one-click iOS shortcut
+- a one-click iOS shortcut and a packaged `.exe`
 
 Run the tests with:
 
@@ -124,15 +108,6 @@ Run the tests with:
 pip install -e ".[dev]"
 pytest
 ```
-
-To build `OtpBridge.exe` yourself:
-
-```bash
-pip install -e ".[build]"
-pyinstaller packaging/OtpBridge.spec
-```
-
-The exe lands in `dist/`. Pushing a `v*` tag builds it on GitHub Actions and attaches it to a release.
 
 ## License
 

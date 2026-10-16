@@ -1,0 +1,48 @@
+name: Bug report
+description: Something isn't working.
+labels: ["bug"]
+body:
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened?
+      description: What you did, what you expected, and what happened instead.
+    validations:
+      required: true
+  - type: dropdown
+    id: mode
+    attributes:
+      label: Connection mode
+      options: ["Direct, same Wi-Fi", "Direct, Tailscale", "Relay (ntfy)", "Not sure"]
+    validations:
+      required: true
+  - type: dropdown
+    id: phone
+    attributes:
+      label: Phone
+      options: ["iPhone (Shortcuts)", "Android", "Other"]
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: OTP Bridge version
+      description: Run `otp-bridge --version`.
+    validations:
+      required: true
+  - type: input
+    id: windows
+    attributes:
+      label: Windows version
+      placeholder: "Windows 11 24H2"
+  - type: dropdown
+    id: install
+    attributes:
+      label: How did you install it?
+      options: [".exe from Releases", "pipx / pip", "From source"]
+  - type: textarea
+    id: log
+    attributes:
+      label: Log
+      description: "Relevant lines from `%APPDATA%\otp-bridge\otp-bridge.log`. It never contains codes or message text, but check it for anything you'd rather not share."
+      render: text

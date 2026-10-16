@@ -1,0 +1,34 @@
+name: Code not detected (or wrong code)
+description: OTP Bridge missed a code, or picked the wrong number from a message.
+labels: ["detection"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks! These reports make detection better for everyone.
+        **Before pasting, replace the real code and any personal details** (names, account numbers, phone numbers) with made-up values of the same length. Keep the wording and layout exactly as they were.
+  - type: textarea
+    id: message
+    attributes:
+      label: Message text (with personal details replaced)
+      placeholder: "Your Example Bank code is 111222. Don't share it. Call 1-800-555-0100 with questions."
+    validations:
+      required: true
+  - type: input
+    id: expected
+    attributes:
+      label: Expected code
+      placeholder: "111222"
+    validations:
+      required: true
+  - type: input
+    id: got
+    attributes:
+      label: What OTP Bridge picked
+      description: Run `otp-bridge test "<message>"` to check.
+      placeholder: "(no code found)"
+  - type: input
+    id: service
+    attributes:
+      label: Which service sent it? (optional)
+      placeholder: "Example Bank"

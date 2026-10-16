@@ -80,7 +80,8 @@ def build():
     run(sys.executable, str(ROOT / "tools/check.py"))
     run(sys.executable, "-m", "PyInstaller", "--noconfirm", "--clean", "packaging/OtpBridge.spec")
     digest = hashlib.sha256(EXE.read_bytes()).hexdigest()
-    SUMS.write_text(f"{digest}  {EXE.name}\n", encoding="utf-8")
+    # LF endings, so `sha256sum -c` works on macOS and Linux too.
+    SUMS.write_bytes(f"{digest}  {EXE.name}\n".encode())
     # Smoke test: the frozen exe must start and parse a message.
     out = subprocess.run([str(EXE), "test", "Your code is 482913"], capture_output=True, text=True, timeout=60, check=False)
     if "482913" not in out.stdout:

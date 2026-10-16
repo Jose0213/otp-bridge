@@ -5,7 +5,7 @@ All notable changes to this project are documented here. The format follows [Kee
 ## [Unreleased]
 
 ### Added
-- A browser extension for Edge and Chrome (Manifest V3, in `extension/`) that fills one-time-code fields as soon as a code arrives. It recognizes `autocomplete="one-time-code"`, split single-digit boxes, and common field names, fills each field once, only in the visible tab, and shows a small confirmation.
+- A browser extension for Edge and Chrome (Manifest V3, in `extension/`) that fills one-time-code fields. It recognizes `autocomplete="one-time-code"`, split single-digit boxes, and common field names. It fills only a field you have clicked or typed in, on the visible tab, so a page or ad frame can't receive a code just by showing a code box. Each field is filled once, with a small confirmation.
 - `GET /latest`, a loopback-only endpoint the extension long-polls for the current code. It needs a per-install pairing key, and refuses web page origins and rebinding hostnames.
 - "Copy browser pairing key" in the tray menu, `otp-bridge pair-extension`, and the `extension_key` setting.
 

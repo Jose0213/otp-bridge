@@ -37,7 +37,7 @@ flowchart LR
 
 - **iPhone and Android.** Uses a Shortcuts automation on iPhone, or any SMS-to-webhook app on Android.
 - **Smart detection.** Finds the code even when the message also contains phone numbers, dollar amounts, dates, or times. Handles `G-123456`, `123-456`, `123 456`, and letter-and-number codes.
-- **Fills web forms by itself.** With the Edge or Chrome extension, the code goes straight into the login page's code field, the way Safari does it on a Mac.
+- **Fills web forms.** With the Edge or Chrome extension, click into a login page's code field and the code goes straight in, the way Safari offers it on a Mac.
 - **Types it for you.** The hotkey types the code into whatever field has focus, in a browser or a desktop app, not only web forms.
 - **Private by default.** Codes stay in memory, expire after 5 minutes, and never touch the disk or the log. Your previous clipboard text is put back when a code expires.
 - **Works from anywhere.** Choose your home network, Tailscale, or an ntfy relay. No port forwarding needed.
@@ -230,7 +230,7 @@ If the app supports filters, forward only messages that contain "code", so the r
 
 ## Browser extension (Edge and Chrome)
 
-The extension fills one-time-code fields as soon as a code arrives, so you don't need the hotkey on websites.
+The extension fills one-time-code fields for you, so you don't need the hotkey on websites. Click into the code field, and the code appears there as soon as it arrives (or right away if it arrived in the last 90 seconds).
 
 **Install (unpacked, until it's in the stores):**
 
@@ -242,7 +242,7 @@ The extension fills one-time-code fields as soon as a code arrives, so you don't
 
 **How it stays private:**
 
-- The extension only asks OTP Bridge for a code while a code field is on the page and the tab is visible. It never fills a tab in the background.
+- The extension only fills a code field you've clicked or tabbed into, on the tab you're looking at. A page or an embedded frame (such as an ad) can't receive a code just by showing a code box, and nothing is filled in a background tab.
 - A code counts if it arrived after the field appeared, or up to 90 seconds before. Older codes aren't filled, and a code is filled only once, so it won't land in a second form.
 - OTP Bridge answers the extension only on `127.0.0.1`. To the LAN and Tailscale, the endpoint doesn't exist. Web pages can't use it either: the pairing key is required, and requests from a web page's origin or a rebinding hostname are refused.
 - Codes stay in memory in the app and the browser. The extension remembers only a hash of the last filled code, in session memory.

@@ -136,6 +136,32 @@
     setTimeout(() => host.remove(), 2600);
   }
 
+  // --- only fill where the user is ---------------------------------------
+  // A page, or an ad frame inside it, must not receive a code just by showing a
+  // code box. Fill only once this frame has had a real click or key press and
+  // one of the code fields has focus: the moment you would type the code anyway.
+  function userIsOnField(target) {
+    const activated = navigator.userActivation ? navigator.userActivation.hasBeenActive : false;
+    return activated && document.hasFocus() && target.els.includes(document.activeElement);
+  }
+
+  // Resolves when the user moves into a code field, or clicks or types in one
+  // that already has focus (many sites focus the code box themselves).
+  const USER_EVENTS = ["focusin", "pointerdown", "keydown"];
+  const whenFocused = (target, ms) =>
+    new Promise((resolve) => {
+      const onEvent = (event) => {
+        if (target.els.includes(event.target)) setTimeout(finish, 0);
+      };
+      const finish = () => {
+        USER_EVENTS.forEach((type) => document.removeEventListener(type, onEvent, true));
+        clearTimeout(timer);
+        resolve();
+      };
+      const timer = setTimeout(finish, ms);
+      USER_EVENTS.forEach((type) => document.addEventListener(type, onEvent, true));
+    });
+
   // --- waiting for a code -------------------------------------------------
   function ask(msg) {
     return new Promise((resolve) => {
@@ -187,6 +213,13 @@
         continue;
       }
       if (resp.code && !document.hidden && (!fresh || resp.age <= RECENT_SECONDS) && !target.els.some((el) => el.value)) {
+        if (!userIsOnField(target)) {
+          // Hold the code until the user clicks into the field, then ask again:
+          // it's filled if it is still recent.
+          await whenFocused(target, 10000);
+          fresh = true;
+          continue;
+        }
         if (await fill(target, resp.code)) {
           target.els.forEach((el) => done.add(el));
           ask({ type: "filled", id: resp.id, code: resp.code });

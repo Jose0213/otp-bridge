@@ -100,7 +100,7 @@ Run `otp-bridge setup --direct-only` to turn relay mode off again.
 
 1. Open **Shortcuts**, go to the **Automation** tab, tap **+**, and choose **Message**. It's in the list of triggers, not in the actions search.
 2. Under **Message Contains**, enter `code`. This also matches "passcode". Leave **Sender** as anyone.
-3. Choose **Run Immediately** (on newer iOS, turn **Confirm Before Run** off). Tap **Next**, then **New Blank Automation**.
+3. Choose **Run Immediately** (on newer iOS, turn **Confirm Before Run** off). Tap **Next**, then **New Blank Automation**. iOS will show a short notification each time it runs; see [Troubleshooting](#troubleshooting) for ways to quiet it.
 4. Tap **Add Action**, search for **Get Contents of URL**, and tap it. If the search bar shows a **Messages** filter chip, clear it first.
 5. Paste the URL from Phone setup. It must start with `http://`, not `https://`.
 6. Show the action's options and set:
@@ -174,6 +174,17 @@ Run `otp-bridge test "<the message>"` to see what's detected. If it's wrong, ple
 <summary><b>Ctrl+Alt+O does nothing</b></summary>
 
 Another app may already use that shortcut. The tray menu shows "(unavailable)" next to the hotkey when it couldn't be registered. Change `hotkey` in `config.json` (for example to `ctrl+shift+f9`) and restart OTP Bridge. Typing into windows that run as administrator also requires running OTP Bridge as administrator.
+
+</details>
+
+<details>
+<summary><b>The iPhone shows a "Running your automation" notification every time</b></summary>
+
+iOS always shows a notification when a **Message** automation runs. Apple requires it for message, email, Wi-Fi, Bluetooth, and location triggers, so the **Notify When Run** switch doesn't appear, and it can't be turned off for a single automation. Your options all affect every Shortcuts notification:
+
+- **Bundle them:** Settings → Notifications → **Scheduled Summary** → add **Shortcuts**. The banners stop interrupting you and arrive in your summary instead. Prompts from automations set to **Confirm Before Run** may be held for the summary too.
+- **Hide them in a Focus:** in a Focus you use (Settings → Focus), silence the Shortcuts app. Banners are hidden only while that Focus is on.
+- **Turn them off:** Settings → **Screen Time** → **See All App & Website Activity** → scroll to **Notifications** → **Shortcuts** → turn off **Allow Notifications**. This silences every Shortcuts notification. Automations set to **Confirm Before Run** rely on a notification to ask you, so they will stop prompting; only do this if all your automations run without confirmation.
 
 </details>
 

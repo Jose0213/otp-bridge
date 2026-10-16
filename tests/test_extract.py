@@ -1,6 +1,6 @@
 import pytest
 
-from otp_bridge.extract import extract_code
+from otp_bridge.extract import extract_code, parse_body
 
 CASES = [
     ("Your Amazon OTP is 482913. Don't share it.", "482913"),
@@ -23,3 +23,17 @@ CASES = [
 @pytest.mark.parametrize("text,expected", CASES)
 def test_extract(text, expected):
     assert extract_code(text) == expected
+
+
+def test_parse_body_capitalized_keys():
+    # iOS Shortcuts capitalizes JSON keys typed on the phone.
+    assert parse_body('{"Text": "Your code is 4821", "Sender": "Uber"}') == ("Your code is 4821", "Uber")
+
+
+def test_parse_body_android_forwarder_keys():
+    assert parse_body('{"from": "+15550100", "text": "code 111222"}') == ("code 111222", "+15550100")
+
+
+def test_parse_body_plain_text_and_bad_json():
+    assert parse_body("Your code is 4821") == ("Your code is 4821", None)
+    assert parse_body("{not json") == ("{not json", None)

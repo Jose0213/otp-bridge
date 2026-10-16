@@ -1,4 +1,5 @@
 """Pull a one-time code out of a text message."""
+import json
 import re
 
 KEYWORDS = re.compile(
@@ -42,3 +43,20 @@ def extract_code(text):
         if best is None or score < best[0]:
             best = (score, code)
     return best[1] if best else None
+
+
+def parse_body(raw):
+    """Return (text, sender) from a forwarded message body.
+
+    Accepts JSON such as {"text": ..., "sender": ...} with keys in any letter case
+    (iOS Shortcuts capitalizes them), or the raw message as plain text.
+    """
+    if raw.lstrip().startswith("{"):
+        try:
+            payload = {str(k).lower(): v for k, v in json.loads(raw).items()}
+        except (ValueError, AttributeError):
+            return raw, None
+        text = payload.get("text") or payload.get("message") or payload.get("body") or ""
+        sender = payload.get("sender") or payload.get("from")
+        return str(text), (str(sender)[:60] if sender else None)
+    return raw, None

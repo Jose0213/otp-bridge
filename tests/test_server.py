@@ -54,3 +54,9 @@ def test_public_ip_blocked():
     assert server._ip_allowed("192.168.1.20", False)
     assert not server._ip_allowed("8.8.8.8", False)
     assert server._ip_allowed("8.8.8.8", True)
+
+
+def test_capitalized_json_keys(running):
+    url, received = running
+    assert post(url, json.dumps({"Text": "Your code is 902113", "Sender": "DoorDash"})) == {"code": "902113"}
+    assert received == [("902113", "DoorDash")]

@@ -2,6 +2,15 @@
 
 All notable changes to this project are documented here. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and versions follow [Semantic Versioning](https://semver.org/).
 
+## [Unreleased]
+
+### Fixed
+- JSON keys from the phone are matched in any letter case. iOS Shortcuts capitalizes them, so `Text` and `Sender` were ignored and every code came back `null`.
+- Phone setup no longer lists virtual adapters (WSL, Hyper-V, Docker, VMs) that a phone can't reach, and the Tailscale address is listed first.
+
+### Changed
+- The iPhone setup steps match current iOS.
+
 ## [0.1.0] - 2026-10-15
 
 ### Added
@@ -13,4 +22,5 @@ All notable changes to this project are documented here. The format follows [Kee
 - Standalone `OtpBridge.exe` attached to each GitHub release.
 - `otp-bridge setup`, `test`, `install-startup`, and `uninstall-startup` commands, plus a Phone setup page in the tray menu.
 
+[Unreleased]: https://github.com/Jose0213/otp-bridge/compare/v0.1.0...HEAD
 [0.1.0]: https://github.com/Jose0213/otp-bridge/releases/tag/v0.1.0

@@ -8,6 +8,27 @@ import subprocess
 from . import config
 
 TAILNET = ipaddress.ip_network("100.64.0.0/10")
+NO_WINDOW = getattr(subprocess, "CREATE_NO_WINDOW", 0)
+# Adapters a phone can never reach: WSL, Hyper-V, Docker, and VM software.
+VIRTUAL_ADAPTERS = ("vethernet", "wsl", "hyper-v", "virtualbox", "vmware", "docker", "loopback")
+
+
+def _virtual_ips():
+    """IPv4 addresses that belong to virtual adapters (Windows only; empty elsewhere)."""
+    if not shutil.which("powershell"):
+        return set()
+    cmd = "Get-NetIPAddress -AddressFamily IPv4 | ForEach-Object { $_.IPAddress + '|' + $_.InterfaceAlias }"
+    try:
+        out = subprocess.run(["powershell", "-NoProfile", "-Command", cmd], capture_output=True, text=True,
+                             timeout=10, check=False, creationflags=NO_WINDOW).stdout
+    except (OSError, subprocess.SubprocessError):
+        return set()
+    virtual = set()
+    for line in out.splitlines():
+        ip, _, alias = line.strip().partition("|")
+        if any(word in alias.lower() for word in VIRTUAL_ADAPTERS):
+            virtual.add(ip)
+    return virtual
 
 
 def local_ips():
@@ -20,14 +41,15 @@ def local_ips():
     if shutil.which("tailscale"):
         try:
             out = subprocess.run(["tailscale", "ip", "-4"], capture_output=True, text=True, timeout=5,
-                                 creationflags=getattr(subprocess, "CREATE_NO_WINDOW", 0)).stdout
+                                 check=False, creationflags=NO_WINDOW).stdout
             ips.update(line.strip() for line in out.splitlines() if line.strip())
         except (OSError, subprocess.SubprocessError):
             pass
+    virtual = _virtual_ips()
     result = []
-    for ip in sorted(ips):
+    for ip in sorted(ips, key=lambda ip: (ipaddress.ip_address(ip) not in TAILNET, ip)):
         addr = ipaddress.ip_address(ip)
-        if addr.is_loopback or addr.is_link_local:
+        if addr.is_loopback or addr.is_link_local or ip in virtual:
             continue
         result.append((ip, "Tailscale, works anywhere" if addr in TAILNET else "local network, same Wi-Fi only"))
     return result

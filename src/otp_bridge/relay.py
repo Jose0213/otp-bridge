@@ -10,7 +10,7 @@ import threading
 import time
 import urllib.request
 
-from .extract import extract_code
+from .extract import extract_code, parse_body
 
 log = logging.getLogger("otp_bridge")
 
@@ -27,13 +27,8 @@ def _listen(topic_url: str, on_code):
                     event = json.loads(line)
                     if event.get("event") != "message":
                         continue
-                    text = event.get("message", "")
-                    sender = event.get("title") or None
-                    try:  # the phone may send {"text":..., "sender":...} as the body
-                        payload = json.loads(text)
-                        text, sender = str(payload.get("text", "")), payload.get("sender") or sender
-                    except (ValueError, AttributeError):
-                        pass
+                    text, sender = parse_body(event.get("message", ""))
+                    sender = sender or event.get("title") or None
                     code = extract_code(text)
                     if code:
                         on_code(code, sender)

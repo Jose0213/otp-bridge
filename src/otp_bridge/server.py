@@ -6,7 +6,7 @@ import logging
 import threading
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
-from .extract import extract_code
+from .extract import extract_code, parse_body
 
 log = logging.getLogger("otp_bridge")
 
@@ -66,19 +66,12 @@ def make_handler(cfg: dict, on_code):
             if length > MAX_BODY:
                 return self._reply(413)
             raw = self.rfile.read(length).decode("utf-8", "replace")
-            text, sender = raw, None
-            if "json" in (self.headers.get("Content-Type") or "") or raw.lstrip().startswith("{"):
-                try:
-                    payload = json.loads(raw)
-                    text = str(payload.get("text") or payload.get("message") or "")
-                    sender = payload.get("sender") or payload.get("from")
-                except (ValueError, AttributeError):
-                    pass
+            text, sender = parse_body(raw)
             code = extract_code(text)
             if not code:
                 log.info("message from %s had no code", self.client_address[0])
                 return self._reply(200, {"code": None})
-            on_code(code, str(sender) if sender else None)
+            on_code(code, sender)
             self._reply(200, {"code": code})
 
     return Handler

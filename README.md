@@ -98,17 +98,20 @@ Run `otp-bridge setup --direct-only` to turn relay mode off again.
 
 ### iPhone (iOS 17 or later)
 
-1. Open **Shortcuts**, go to the **Automation** tab, tap **+**, and choose **Message**.
+1. Open **Shortcuts**, go to the **Automation** tab, tap **+**, and choose **Message**. It's in the list of triggers, not in the actions search.
 2. Under **Message Contains**, enter `code`. This also matches "passcode". Leave **Sender** as anyone.
-3. Choose **Run Immediately** and turn off **Notify When Run**. Tap **Next**, then **New Blank Automation**.
-4. Add the **Get Contents of URL** action and paste the URL from Phone setup.
-5. Tap the arrow to show more options and set:
+3. Choose **Run Immediately** (on newer iOS, turn **Confirm Before Run** off). Tap **Next**, then **New Blank Automation**.
+4. Tap **Add Action**, search for **Get Contents of URL**, and tap it. If the search bar shows a **Messages** filter chip, clear it first.
+5. Paste the URL from Phone setup. It must start with `http://`, not `https://`.
+6. Show the action's options and set:
    - **Method**: `POST`
-   - **Headers**: add `Authorization` with value `Bearer <your token>` (direct mode only)
+   - **Headers**: add `Authorization` with the value `Bearer`, a space, and your token, for example `Bearer 28UKJHxxxx`. No brackets. (Direct mode only.)
    - **Request Body**: `JSON`, with two Text fields:
-     - `text`: tap the value, choose **Shortcut Input**, then **Content**
-     - `sender`: **Shortcut Input**, then **Sender** (optional)
-6. Tap **Done**.
+     - `text`: set the value to the **Message** variable
+     - `sender`: set the value to the **Message** variable, then tap it and choose **Sender** (optional)
+
+   Key names can be in any letter case.
+7. Tap **▶** to test. A response of `{"code": null}` means your phone reached the PC; it's `null` only because a manual run has no message in it. `unauthorized` means the token or header is wrong.
 
 To also catch texts like "Your OTP is…", add a second automation with `OTP` as the word. Duplicate forwards of the same code are ignored. If you use Tailscale, turn on **VPN On Demand** in the Tailscale app so the phone stays connected.
 
@@ -117,7 +120,7 @@ To also catch texts like "Your OTP is…", add a second automation with `OTP` as
 Use any app that forwards incoming SMS to a URL, such as the open-source [Incoming SMS to URL forwarder](https://github.com/bogkonstantin/android_income_sms_gateway_webhook). Configure it to:
 
 - send to the URL from Phone setup
-- add the header `Authorization: Bearer <your token>` (direct mode only)
+- add the header `Authorization` with the value `Bearer` followed by a space and your token (direct mode only)
 - send a JSON body that includes the message as `text` (the `from` field is read as the sender), or the raw message as plain text
 
 If the app supports filters, forward only messages that contain "code", so the rest of your texts never leave the phone.

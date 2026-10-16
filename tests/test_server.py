@@ -60,3 +60,31 @@ def test_capitalized_json_keys(running):
     url, received = running
     assert post(url, json.dumps({"Text": "Your code is 902113", "Sender": "DoorDash"})) == {"code": "902113"}
     assert received == [("902113", "DoorDash")]
+
+
+def test_token_with_stray_whitespace(running):
+    url, received = running
+    req = urllib.request.Request(url + "/otp", data=b'{"text": "code 445566"}', method="POST",
+                                 headers={"Authorization": "Bearer  secret-token\n".strip() + " ",
+                                          "Content-Type": "application/json"})
+    with urllib.request.urlopen(req) as resp:
+        assert json.loads(resp.read()) == {"code": "445566"}
+
+
+def test_token_in_json_body(running):
+    # iOS Shortcuts sometimes drops the Authorization header; the body field is the fallback.
+    url, received = running
+    req = urllib.request.Request(url + "/otp", data=b'{"Text": "Your code is 314159", "Token": "secret-token"}',
+                                 method="POST", headers={"Content-Type": "application/json"})
+    with urllib.request.urlopen(req) as resp:
+        assert json.loads(resp.read()) == {"code": "314159"}
+
+
+def test_wrong_token_in_json_body(running):
+    url, received = running
+    req = urllib.request.Request(url + "/otp", data=b'{"text": "code 314159", "token": "nope"}',
+                                 method="POST", headers={"Content-Type": "application/json"})
+    with pytest.raises(urllib.error.HTTPError) as err:
+        urllib.request.urlopen(req)
+    assert err.value.code == 401
+    assert received == []

@@ -26,6 +26,22 @@ def _ip_allowed(ip: str, allow_public: bool) -> bool:
     return addr.is_loopback or addr.is_private or addr in TAILSCALE
 
 
+def _body_token(raw: str) -> str:
+    """The "token" field of a JSON body (any letter case), or ""."""
+    if not raw.lstrip().startswith("{"):
+        return ""
+    try:
+        payload = json.loads(raw)
+    except ValueError:
+        return ""
+    if not isinstance(payload, dict):
+        return ""
+    for key, value in payload.items():
+        if str(key).lower() == "token" and isinstance(value, str):
+            return value
+    return ""
+
+
 def make_handler(cfg: dict, on_code):
     token = cfg["token"].encode()
 
@@ -43,12 +59,25 @@ def make_handler(cfg: dict, on_code):
             self.end_headers()
             self.wfile.write(data)
 
-        def _authorized(self) -> bool:
+        def _authorized(self, raw: str) -> bool:
             if not _ip_allowed(self.client_address[0], cfg["allow_public_ips"]):
                 return False
-            auth = self.headers.get("Authorization", "")
-            supplied = auth[7:] if auth.lower().startswith("bearer ") else self.headers.get("X-OTP-Token", "")
-            return hmac.compare_digest(supplied.encode(), token)
+            auth = self.headers.get("Authorization", "").strip()
+            if auth[:7].lower() == "bearer ":
+                supplied = auth[7:]
+            else:
+                # Some iOS Shortcuts setups silently drop the Authorization header,
+                # so the token can also come as a header or as a "token" body field.
+                supplied = self.headers.get("X-OTP-Token", "") or _body_token(raw)
+            # Phones can add stray spaces or a trailing line break from a Text action.
+            supplied = "".join(supplied.split())
+            if hmac.compare_digest(supplied.encode(), token):
+                return True
+            # Describe what arrived without logging any secret: header names and lengths only.
+            log.warning("bad token from %s: headers=%s, auth=%d chars, scheme=%r, token part=%d chars (expected %d)",
+                        self.client_address[0], sorted(self.headers.keys()), len(auth),
+                        auth.split(" ", 1)[0][:10] if auth else "", len(supplied), len(token))
+            return False
 
         def do_GET(self):
             if self.path == "/health":
@@ -59,17 +88,19 @@ def make_handler(cfg: dict, on_code):
         def do_POST(self):
             if self.path.rstrip("/") != "/otp":
                 return self._reply(404)
-            if not self._authorized():
-                log.warning("rejected request from %s", self.client_address[0])
-                return self._reply(401, {"error": "unauthorized"})
             length = int(self.headers.get("Content-Length") or 0)
             if length > MAX_BODY:
                 return self._reply(413)
             raw = self.rfile.read(length).decode("utf-8", "replace")
+            if not self._authorized(raw):
+                log.warning("rejected request from %s", self.client_address[0])
+                return self._reply(401, {"error": "unauthorized"})
             text, sender = parse_body(raw)
             code = extract_code(text)
             if not code:
-                log.info("message from %s had no code", self.client_address[0])
+                # Lengths only, never content: tells an empty forward apart from a missed code.
+                log.info("message from %s had no code (body %d chars, text %d chars)",
+                         self.client_address[0], len(raw), len(text))
                 return self._reply(200, {"code": None})
             on_code(code, sender)
             self._reply(200, {"code": code})

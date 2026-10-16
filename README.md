@@ -35,7 +35,7 @@ flowchart LR
 
 - **iPhone and Android.** Uses a Shortcuts automation on iPhone, or any SMS-to-webhook app on Android.
 - **Smart detection.** Finds the code even when the message also contains phone numbers, dollar amounts, dates, or times. Handles `G-123456`, `123-456`, `123 456`, and letter-and-number codes.
-- **Types anywhere.** The hotkey types the code into browsers, desktop apps, and remote desktop sessions, not only web forms.
+- **Types it for you.** The hotkey types the code into whatever field has focus, in a browser or a desktop app, not only web forms.
 - **Private by default.** Codes stay in memory, expire after 5 minutes, and never touch the disk or the log. Your previous clipboard text is put back when a code expires.
 - **Works from anywhere.** Choose your home network, Tailscale, or an ntfy relay. No port forwarding needed.
 - **Lightweight.** A tray icon with no console window. It starts when you sign in.

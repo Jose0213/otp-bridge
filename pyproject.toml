@@ -26,6 +26,7 @@ dependencies = [
 
 [project.optional-dependencies]
 dev = ["pytest>=7"]
+build = ["pyinstaller>=6"]
 
 [project.scripts]
 otp-bridge = "otp_bridge.__main__:main"

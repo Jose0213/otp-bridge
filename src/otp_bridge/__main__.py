@@ -25,13 +25,33 @@ def cmd_setup(cfg, args):
         print("\nRestart OTP Bridge for the change to take effect.")
 
 
+def startup_command():
+    """(target, arguments) that start the tray app: the exe itself when frozen, else pythonw -m."""
+    if getattr(sys, "frozen", False):
+        return Path(sys.executable), ""
+    pythonw = Path(sys.executable).with_name("pythonw.exe")
+    return (pythonw if pythonw.exists() else Path(sys.executable)), "-m otp_bridge"
+
+
+def attach_parent_console():
+    """The .exe is built without a console, so print() goes nowhere. When it's run from a
+    terminal, write to that terminal instead."""
+    if not getattr(sys, "frozen", False) or sys.stdout is not None:
+        return
+    import ctypes
+
+    if ctypes.windll.kernel32.AttachConsole(-1):  # ATTACH_PARENT_PROCESS
+        sys.stdout = open("CONOUT$", "w", encoding="utf-8")
+        sys.stderr = sys.stdout
+
+
 def cmd_install_startup():
     import win32com.client  # pywin32
 
-    pythonw = Path(sys.executable).with_name("pythonw.exe")
+    target, arguments = startup_command()
     link = win32com.client.Dispatch("WScript.Shell").CreateShortcut(str(STARTUP_LINK))
-    link.TargetPath = str(pythonw if pythonw.exists() else sys.executable)
-    link.Arguments = "-m otp_bridge"
+    link.TargetPath = str(target)
+    link.Arguments = arguments
     link.WorkingDirectory = str(Path.home())
     link.Description = "OTP Bridge"
     link.Save()
@@ -39,6 +59,8 @@ def cmd_install_startup():
 
 
 def main(argv=None):
+    if (sys.argv[1:] if argv is None else argv):
+        attach_parent_console()
     parser = argparse.ArgumentParser(prog="otp-bridge", description="Autofill one-time codes from your phone's texts.")
     parser.add_argument("--version", action="version", version=__version__)
     sub = parser.add_subparsers(dest="cmd")

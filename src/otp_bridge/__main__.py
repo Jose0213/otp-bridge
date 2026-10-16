@@ -1,4 +1,4 @@
-"""Command line: `otp-bridge [run|setup|test|install-startup|uninstall-startup]`."""
+"""Command line: `otp-bridge [run|setup|pair-extension|test|install-startup|uninstall-startup]`."""
 import argparse
 import logging
 import os
@@ -69,6 +69,7 @@ def main(argv=None):
     st.add_argument("--relay", action="store_true", help="turn on relay mode with a new random ntfy topic")
     st.add_argument("--relay-server", default="https://ntfy.sh", help="ntfy server for --relay (default ntfy.sh)")
     st.add_argument("--direct-only", action="store_true", help="turn relay mode off")
+    sub.add_parser("pair-extension", help="print the key that pairs the browser extension")
     t = sub.add_parser("test", help="show which code would be pulled out of a message")
     t.add_argument("message")
     sub.add_parser("install-startup", help="start OTP Bridge when you sign in")
@@ -89,6 +90,10 @@ def main(argv=None):
     cfg = config.load()
     if args.cmd == "setup":
         cmd_setup(cfg, args)
+        return
+    if args.cmd == "pair-extension":
+        print("Paste this key into the OTP Bridge extension's options page:")
+        print(cfg["extension_key"])
         return
 
     logging.basicConfig(

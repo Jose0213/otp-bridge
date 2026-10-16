@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>OTP Bridge options</title>
+  <style>
+    :root { color-scheme: light dark; --accent: #2563eb; --muted: #6b7280; --line: #d1d5db; --ok: #15803d; --bad: #b91c1c; }
+    @media (prefers-color-scheme: dark) { :root { --muted: #9ca3af; --line: #374151; --ok: #4ade80; --bad: #f87171; } }
+    body { font: 14px/1.5 system-ui, -apple-system, "Segoe UI", sans-serif; max-width: 520px; margin: 40px auto; padding: 0 16px; }
+    h1 { font-size: 20px; display: flex; align-items: center; gap: 10px; margin: 0 0 4px; }
+    h1 img { width: 28px; height: 28px; }
+    p.lead { color: var(--muted); margin: 0 0 24px; }
+    ol { padding-left: 20px; margin: 0 0 24px; }
+    label { display: block; font-weight: 600; margin: 16px 0 4px; }
+    input { width: 100%; box-sizing: border-box; font: inherit; padding: 8px 10px; border: 1px solid var(--line); border-radius: 6px; background: transparent; color: inherit; }
+    input#port { width: 120px; }
+    .hint { color: var(--muted); font-size: 12px; margin-top: 4px; }
+    .row { display: flex; gap: 8px; align-items: center; margin-top: 20px; }
+    button { font: inherit; padding: 8px 14px; border-radius: 6px; border: 1px solid var(--line); background: transparent; color: inherit; cursor: pointer; }
+    button.primary { background: var(--accent); border-color: var(--accent); color: #fff; }
+    #status { margin-left: 4px; }
+    #status.ok { color: var(--ok); }
+    #status.bad { color: var(--bad); }
+  </style>
+</head>
+<body>
+  <h1><img src="icons/icon48.png" alt="">OTP Bridge</h1>
+  <p class="lead">Fills text-message codes from the OTP Bridge app on this PC into login forms.</p>
+
+  <ol>
+    <li>Right-click the OTP Bridge tray icon and choose <b>Copy browser pairing key</b> (or run <code>otp-bridge pair-extension</code>).</li>
+    <li>Paste the key below and click <b>Save</b>.</li>
+  </ol>
+
+  <form id="form">
+    <label for="key">Pairing key</label>
+    <input id="key" type="password" autocomplete="off" spellcheck="false" required>
+    <div class="hint">Only this browser and the OTP Bridge app know it. It never leaves this PC.</div>
+
+    <label for="port">Port</label>
+    <input id="port" type="number" min="1" max="65535" value="9233" required>
+    <div class="hint">Change it only if you changed <code>port</code> in OTP Bridge's settings.</div>
+
+    <div class="row">
+      <button class="primary" type="submit">Save</button>
+      <button type="button" id="test">Test connection</button>
+      <span id="status" role="status"></span>
+    </div>
+  </form>
+  <script src="options.js"></script>
+</body>
+</html>

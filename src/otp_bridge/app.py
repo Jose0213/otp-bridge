@@ -32,6 +32,7 @@ class OtpBridge:
         self.saved_clipboard = None
         self.icon = None
         self.hotkey_ok = False
+        self.latest = server.LatestCode(cfg["ttl_seconds"])  # for the browser extension
 
     # --- code state -------------------------------------------------------
     def current_code(self):
@@ -47,6 +48,7 @@ class OtpBridge:
             first = self.code is None or time.monotonic() - self.received_at >= self.cfg["ttl_seconds"]
             self.code, self.received_at = code, time.monotonic()
         log.info("received a %d-character code", len(code))
+        self.latest.publish(code)
         try:
             previous = pyperclip.paste()
             if first:
@@ -64,6 +66,7 @@ class OtpBridge:
                 return
             self.code = None
             saved, self.saved_clipboard = self.saved_clipboard, None
+        self.latest.clear(code)
         if not self.cfg["restore_clipboard"]:
             return
         try:
@@ -88,6 +91,10 @@ class OtpBridge:
         else:
             self.notify("No recent code", "OTP Bridge")
 
+    def copy_extension_key(self):
+        pyperclip.copy(self.cfg["extension_key"])
+        self.notify("Paste it into the OTP Bridge browser extension's options page.", "Pairing key copied")
+
     def notify(self, message, title):
         if self.icon:
             try:
@@ -97,7 +104,7 @@ class OtpBridge:
 
     # --- run --------------------------------------------------------------
     def run(self):
-        server.start(self.cfg, self.on_code)
+        server.start(self.cfg, self.on_code, self.latest)
         if self.cfg.get("relay_url"):
             relay.start(self.cfg["relay_url"], self.on_code)
         self.hotkey_ok = win.listen_hotkey(self.cfg["hotkey"], self.type_code)
@@ -110,6 +117,7 @@ class OtpBridge:
             pystray.MenuItem(lambda item: f"Hotkey: {self.cfg['hotkey'].upper()}"
                              + ("" if self.hotkey_ok else " (unavailable)"), None, enabled=False),
             pystray.MenuItem("Phone setup…", lambda: os.startfile(setup_info.write_page(self.cfg))),
+            pystray.MenuItem("Copy browser pairing key", from_tray(self.copy_extension_key)),
             pystray.MenuItem("Open settings folder", lambda: os.startfile(config.config_dir())),
             pystray.Menu.SEPARATOR,
             pystray.MenuItem("Quit", lambda icon: icon.stop()),

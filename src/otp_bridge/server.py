@@ -4,6 +4,8 @@ import ipaddress
 import json
 import logging
 import threading
+import time
+import urllib.parse
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
 from .extract import extract_code, parse_body
@@ -12,6 +14,61 @@ log = logging.getLogger("otp_bridge")
 
 TAILSCALE = ipaddress.ip_network("100.64.0.0/10")
 MAX_BODY = 16 * 1024
+# GET /latest is for the browser extension on this PC only.
+LOOPBACK_HOSTS = {"127.0.0.1", "localhost", "::1"}
+EXTENSION_ORIGINS = ("chrome-extension://", "extension://", "moz-extension://")
+MAX_WAIT = 30
+
+
+class LatestCode:
+    """The newest code, for the browser extension to long-poll. Memory only."""
+
+    def __init__(self, ttl: float):
+        self.ttl = ttl
+        self.changed = threading.Condition()
+        self.code = None
+        self.received_at = 0.0
+        self.seq = 0  # bumps on every new code, so a client can wait for the next one
+
+    def publish(self, code: str):
+        with self.changed:
+            self.code, self.received_at = code, time.monotonic()
+            self.seq += 1
+            self.changed.notify_all()
+
+    def clear(self, code: str):
+        with self.changed:
+            if self.code == code:
+                self.code = None
+
+    def _fresh(self):
+        return self.code is not None and time.monotonic() - self.received_at < self.ttl
+
+    def get(self, after: int = 0, wait: float = 0) -> dict:
+        """The current code if its id is newer than `after`, waiting up to `wait` seconds."""
+        with self.changed:
+            self.changed.wait_for(lambda: self.seq > after and self._fresh(), timeout=wait)
+            if self.seq > after and self._fresh():
+                return {"code": self.code, "id": self.seq,
+                        "age": round(time.monotonic() - self.received_at, 1)}
+            return {"code": None, "id": self.seq}
+
+
+def _is_loopback(ip: str) -> bool:
+    try:
+        addr = ipaddress.ip_address(ip)
+    except ValueError:
+        return False
+    if addr.version == 6 and addr.ipv4_mapped:
+        addr = addr.ipv4_mapped
+    return addr.is_loopback
+
+
+def _query_number(query: dict, name: str, upper: float) -> float:
+    try:
+        return min(max(float(query.get(name, ["0"])[0]), 0), upper)
+    except ValueError:
+        return 0
 
 
 def _ip_allowed(ip: str, allow_public: bool) -> bool:
@@ -42,8 +99,9 @@ def _body_token(raw: str) -> str:
     return ""
 
 
-def make_handler(cfg: dict, on_code):
+def make_handler(cfg: dict, on_code, latest: LatestCode = None):
     token = cfg["token"].encode()
+    extension_key = (cfg.get("extension_key") or "").encode()
 
     class Handler(BaseHTTPRequestHandler):
         server_version = "otp-bridge"
@@ -55,6 +113,7 @@ def make_handler(cfg: dict, on_code):
             data = json.dumps(body or {}).encode()
             self.send_response(status)
             self.send_header("Content-Type", "application/json")
+            self.send_header("Cache-Control", "no-store")
             self.send_header("Content-Length", str(len(data)))
             self.end_headers()
             self.wfile.write(data)
@@ -79,10 +138,32 @@ def make_handler(cfg: dict, on_code):
             return False
 
         def do_GET(self):
-            if self.path == "/health":
+            path, _, query = self.path.partition("?")
+            if path == "/health":
                 self._reply(200, {"ok": True})
+            elif path.rstrip("/") == "/latest" and latest is not None:
+                self._latest(urllib.parse.parse_qs(query))
             else:
                 self._reply(404)
+
+        def _latest(self, query):
+            # Loopback only: to anything on the LAN or tailnet this path doesn't exist.
+            if not _is_loopback(self.client_address[0]):
+                log.warning("rejected /latest from %s", self.client_address[0])
+                return self._reply(404)
+            # Block DNS rebinding (a page whose own hostname resolves to 127.0.0.1)
+            # and plain web pages; only the extension's own origin may ask.
+            host = urllib.parse.urlsplit("//" + self.headers.get("Host", "")).hostname
+            origin = self.headers.get("Origin", "")
+            if host not in LOOPBACK_HOSTS or (origin and not origin.startswith(EXTENSION_ORIGINS)):
+                log.warning("rejected /latest: host or origin not allowed")
+                return self._reply(403, {"error": "forbidden"})
+            supplied = self.headers.get("X-OTP-Bridge-Key", "").strip().encode()
+            if not extension_key or not hmac.compare_digest(supplied, extension_key):
+                log.warning("rejected /latest: extension key %s", "wrong" if supplied else "missing")
+                return self._reply(401, {"error": "unauthorized"})
+            after = int(_query_number(query, "after", 2**62))
+            self._reply(200, latest.get(after, _query_number(query, "wait", MAX_WAIT)))
 
         def do_POST(self):
             if self.path.rstrip("/") != "/otp":
@@ -113,8 +194,8 @@ def make_handler(cfg: dict, on_code):
     return Handler
 
 
-def start(cfg: dict, on_code) -> ThreadingHTTPServer:
-    httpd = ThreadingHTTPServer((cfg["bind"], cfg["port"]), make_handler(cfg, on_code))
+def start(cfg: dict, on_code, latest: LatestCode = None) -> ThreadingHTTPServer:
+    httpd = ThreadingHTTPServer((cfg["bind"], cfg["port"]), make_handler(cfg, on_code, latest))
     threading.Thread(target=httpd.serve_forever, daemon=True, name="http").start()
     log.info("listening on %s:%s", cfg["bind"], cfg["port"])
     return httpd

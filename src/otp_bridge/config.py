@@ -43,6 +43,10 @@ def load() -> dict:
     if not data.get("token"):
         data["token"] = secrets.token_urlsafe(24)
         changed = True
+    if not data.get("extension_key"):
+        # Pairs the browser extension with this PC; separate from the phone's token.
+        data["extension_key"] = secrets.token_urlsafe(24)
+        changed = True
     if changed:
         save(data)
     return data

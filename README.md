@@ -37,6 +37,7 @@ flowchart LR
 
 - **iPhone and Android.** Uses a Shortcuts automation on iPhone, or any SMS-to-webhook app on Android.
 - **Smart detection.** Finds the code even when the message also contains phone numbers, dollar amounts, dates, or times. Handles `G-123456`, `123-456`, `123 456`, and letter-and-number codes.
+- **Fills web forms by itself.** With the Edge or Chrome extension, the code goes straight into the login page's code field, the way Safari does it on a Mac.
 - **Types it for you.** The hotkey types the code into whatever field has focus, in a browser or a desktop app, not only web forms.
 - **Private by default.** Codes stay in memory, expire after 5 minutes, and never touch the disk or the log. Your previous clipboard text is put back when a code expires.
 - **Works from anywhere.** Choose your home network, Tailscale, or an ntfy relay. No port forwarding needed.
@@ -227,6 +228,27 @@ Use any app that forwards incoming SMS to a URL, such as the open-source [Incomi
 
 If the app supports filters, forward only messages that contain "code", so the rest of your texts never leave the phone.
 
+## Browser extension (Edge and Chrome)
+
+The extension fills one-time-code fields as soon as a code arrives, so you don't need the hotkey on websites.
+
+**Install (unpacked, until it's in the stores):**
+
+1. Download or clone this repository.
+2. Open `edge://extensions` (or `chrome://extensions`), turn on **Developer mode**, click **Load unpacked**, and choose the `extension` folder.
+3. The options page opens. Right-click the OTP Bridge tray icon, choose **Copy browser pairing key** (or run `otp-bridge pair-extension`), paste the key, and click **Save**. It should say **Connected**.
+
+**What it fills:** fields marked `autocomplete="one-time-code"`, rows of 4 to 8 one-character boxes, and fields whose name, label, or placeholder says things like "verification code", "OTP", or "2FA". Promo, coupon, ZIP, and phone fields are left alone. Each field is filled once, and a small "Code filled" label confirms it. If you've started typing in the field, it isn't touched.
+
+**How it stays private:**
+
+- The extension only asks OTP Bridge for a code while a code field is on the page and the tab is visible. It never fills a tab in the background.
+- A code counts if it arrived after the field appeared, or up to 90 seconds before. Older codes aren't filled, and a code is filled only once, so it won't land in a second form.
+- OTP Bridge answers the extension only on `127.0.0.1`. To the LAN and Tailscale, the endpoint doesn't exist. Web pages can't use it either: the pairing key is required, and requests from a web page's origin or a rebinding hostname are refused.
+- Codes stay in memory in the app and the browser. The extension remembers only a hash of the last filled code, in session memory.
+
+The extension needs two permissions: access to `127.0.0.1` to talk to OTP Bridge, and access to the sites you visit, to find code fields. It sends nothing anywhere else. Like any autofill, it will fill a code field on whatever site is open in front of you, so check the site before you submit.
+
 ## Commands
 
 | Command | What it does |
@@ -234,6 +256,7 @@ If the app supports filters, forward only messages that contain "code", so the r
 | `otp-bridge` | Start the tray app |
 | `otp-bridge setup` | Print the URL and token for your phone |
 | `otp-bridge setup --relay` | Turn on relay mode with a new random topic |
+| `otp-bridge pair-extension` | Print the key that pairs the browser extension |
 | `otp-bridge test "<message>"` | Show which code would be pulled out of a message |
 | `otp-bridge install-startup` | Start OTP Bridge when you sign in |
 | `otp-bridge uninstall-startup` | Stop starting it at sign-in |
@@ -251,6 +274,7 @@ Settings are stored in `%APPDATA%\otp-bridge\config.json`. Open that folder from
 | `allow_public_ips` | `false` | Accept direct requests from non-private addresses (not recommended) |
 | `relay_url` | `""` | ntfy topic URL; empty means direct only |
 | `token` | random | Shared secret for direct mode. Delete it to generate a new one. |
+| `extension_key` | random | Pairs the browser extension. Delete it to generate a new one, then pair again. |
 
 ## Troubleshooting
 
@@ -318,6 +342,8 @@ Macs already have this built in for iPhones. Linux support would be welcome; see
 ## API
 
 To build your own sender, send `POST /otp` with the token as `Authorization: Bearer <token>`, an `X-OTP-Token` header, or a `token` field in the JSON body, and either JSON `{"text": "...", "sender": "..."}` or a plain-text body. The response is `{"code": "482913"}`, or `{"code": null}` when the message has no code. `GET /health` returns `{"ok": true}`.
+
+`GET /latest` is for the browser extension and only answers on loopback (`127.0.0.1`). Send the pairing key as `X-OTP-Bridge-Key`. It returns `{"code": "482913", "id": 3, "age": 4.2}`, or `{"code": null, "id": 3}` when there's no unexpired code. Add `?after=<id>&wait=<seconds>` (up to 30) to wait for a code newer than `id`. A request with an `Origin` that isn't a browser extension, or a `Host` other than `127.0.0.1`, `localhost`, or `::1`, gets `403`.
 
 ## Contributing
 

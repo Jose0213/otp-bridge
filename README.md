@@ -98,9 +98,21 @@ Run `otp-bridge setup --direct-only` to turn relay mode off again.
 
 ### iPhone (iOS 27)
 
-On iOS 27 an automation is a shortcut with a trigger at the top. You build one shortcut that runs when a text arrives and sends it to your PC. It takes about five minutes, and you need the address and token from **Phone setup** on your PC.
+On iOS 27 an automation is a shortcut with a trigger at the top: one shortcut runs when a text arrives and sends it to your PC. Add the ready-made one (about two minutes) or build it yourself (about five). Either way you need the address and token from **Phone setup** on your PC.
 
 > **Keep Shortcuts notifications on.** iOS shows a short notification whenever a message automation runs. If you turn Shortcuts notifications off in Settings, iOS stops running the automation at all, and no codes arrive. See [Troubleshooting](#troubleshooting) for ways to make the notification less intrusive.
+
+#### Quick setup: add the ready-made shortcut
+
+1. On your iPhone, open **[the OTP Bridge shortcut](https://www.icloud.com/shortcuts/c93ddc7f9b734604bca2e39b698d49e1)** and tap **Add Shortcut**. If the sheet doesn't close, tap **Skip Setup**; this is a known iOS 27 bug. It's added under the name **Get Contents of URL**, which you can rename.
+2. Open it. In the **first** Text action, delete `YOUR-PC-ADDRESS` (including the empty line after it) and paste the URL from **Phone setup** on your PC, for example `http://192.168.1.20:9233/otp`.
+3. In the **second** Text action, replace `YOUR-TOKEN` with your token, without `Bearer`.
+4. Tap the arrow next to **where** in the trigger at the top. Turn **Automation** on (shared shortcuts arrive with it off) and make sure **Confirm Before Run** is off.
+5. Tap **▶**. `{"code": null}` means it reached your PC and the token works. Then text yourself `Your test code is 123456`.
+
+Everything else, including the message trigger and the request, is already set up. To build it yourself instead, or to see what each part does, follow the steps below.
+
+#### Build it yourself
 
 <table>
 <tr>
@@ -301,7 +313,7 @@ To build your own sender, send `POST /otp` with the token as `Authorization: Bea
 
 ## Contributing
 
-Contributions are welcome, especially missed-code reports, macOS and Linux ports, and a shareable iPhone shortcut that works on iOS 27. See [CONTRIBUTING.md](CONTRIBUTING.md), and report security issues privately as described in [SECURITY.md](SECURITY.md).
+Contributions are welcome, especially missed-code reports, macOS and Linux ports, and import questions for the shared iPhone shortcut, so people don't have to edit it by hand. See [CONTRIBUTING.md](CONTRIBUTING.md), and report security issues privately as described in [SECURITY.md](SECURITY.md).
 
 ## License
 

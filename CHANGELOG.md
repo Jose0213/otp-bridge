@@ -10,7 +10,7 @@ All notable changes to this project are documented here. The format follows [Kee
 
 ### Added
 - The token can also be sent as a `token` field in the JSON body, because iOS 27 Shortcuts can drop the `Authorization` header.
-- An illustrated iOS 27 setup guide, where the trigger lives inside the shortcut.
+- An illustrated iOS 27 setup guide, where the trigger lives inside the shortcut, and a ready-made shared shortcut that includes the message trigger.
 
 ### Changed
 - Rejected requests log which headers arrived and a scheme label, never any part of the token. Stray spaces in the token are ignored.

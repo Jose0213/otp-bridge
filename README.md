@@ -23,6 +23,8 @@ A Mac fills in text-message codes from an iPhone automatically. Windows has noth
 
 When a text with a code arrives, your phone forwards it to your PC. OTP Bridge pulls out the code, copies it to the clipboard, and shows a notification. Press **Ctrl+Alt+O** to type it into whatever field you're in.
 
+<p align="center"><img src="docs/pc/notification.png" width="363" alt="Windows notification: Code from Example, 482913 copied, Ctrl+Alt+O to type it"></p>
+
 ```mermaid
 flowchart LR
     A["Text arrives<br><i>Your code is 482913</i>"] --> B["Phone automation<br>iOS Shortcuts / Android forwarder"]
@@ -73,6 +75,9 @@ The first time OTP Bridge runs, Windows Firewall may ask whether to allow it on 
 1. **Install** OTP Bridge (above) and make sure the tray icon is showing.
 2. **Choose a connection mode** (below). If your phone and PC share Wi-Fi, the default direct mode needs no setup.
 3. **Get your setup values.** Right-click the tray icon, choose **Phone setup…**, and click any value to copy it.
+
+   <img src="docs/pc/setup-page.png" width="560" alt="The Phone setup page, with example addresses and YOUR-TOKEN in place of a real token">
+
 4. **Set up your phone** using the [iPhone](#iphone-ios-27) or [Android](#android) steps.
 5. **Test it.** Text yourself `Your test code is 123456` from another phone, or use a site's "send code" button. The code should appear in a notification within a couple of seconds.
 

@@ -4,6 +4,10 @@ All notable changes to this project are documented here. The format follows [Kee
 
 ## [Unreleased]
 
+### Changed
+- The Phone setup page shows the token on its own and asks for a `token` body field, the setup that works on iOS 27. The `Authorization` header is described as an alternative.
+- The README shows screenshots of the PC notification and the Phone setup page.
+
 ## [0.1.1] - 2026-10-15
 
 ### Added

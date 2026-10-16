@@ -66,8 +66,10 @@ def as_text(cfg) -> str:
                   f"  POST  {cfg['relay_url']}",
                   "  Body: the message text (no header needed)", ""]
     lines += ["Direct mode:", "  Method: POST",
-              f"  Header: Authorization: Bearer {cfg['token']}",
-              '  Body:   JSON {"text": <message>, "sender": <sender>}', "  URL (one your phone can reach):"]
+              f"  Token:  {cfg['token']}",
+              '  Body:   JSON {"text": <message>, "token": <token>}',
+              "          (or send the token as the header  Authorization: Bearer <token>)",
+              "  URL (one your phone can reach):"]
     lines += [f"    {url}    ({kind})" for url, kind in direct_urls(cfg)] or ["    (no network address found)"]
     lines += ["", f"Settings: {config.config_dir() / 'config.json'}"]
     return "\n".join(lines)
@@ -84,7 +86,7 @@ def write_page(cfg) -> str:
 <style>
 body{{font:15px/1.5 system-ui,sans-serif;max-width:720px;margin:40px auto;padding:0 16px;color:#111;background:#fff}}
 @media(prefers-color-scheme:dark){{body{{color:#eee;background:#16181d}}code{{background:#262a33!important}}}}
-code{{background:#f1f3f5;padding:2px 6px;border-radius:4px;word-break:break-all}} li span{{opacity:.6}}
+code{{background:#f1f3f5;padding:2px 6px;border-radius:4px;word-break:break-all}} li span,.note{{opacity:.6}}
 .copy{{cursor:pointer}} h1{{font-size:22px}} h2{{font-size:17px;margin-top:28px}}
 </style>
 <h1>Connect your phone to OTP Bridge</h1>
@@ -92,8 +94,9 @@ code{{background:#f1f3f5;padding:2px 6px;border-radius:4px;word-break:break-all}
 {relay}
 <h2>Direct mode</h2>
 <p><b>URL</b>: pick one your phone can reach:</p><ul>{rows or '<li>No network address found</li>'}</ul>
-<p><b>Method</b> <code>POST</code> &nbsp; <b>Body</b> JSON with a <code>text</code> field (the message)</p>
-<p><b>Header</b> <code>Authorization</code>: <code class=copy>Bearer {e(cfg['token'])}</code></p>
+<p><b>Token</b> <code class=copy>{e(cfg['token'])}</code></p>
+<p><b>Method</b> <code>POST</code> &nbsp; <b>Body</b> JSON with two fields: <code>text</code> (the message) and <code>token</code> (the token above)</p>
+<p class=note>Instead of the <code>token</code> field you can send the header <code>Authorization: Bearer</code> plus the token, but iOS 27 Shortcuts may not send headers, so the body field is the safer choice.</p>
 <script>document.querySelectorAll('code').forEach(c=>c.onclick=()=>navigator.clipboard.writeText(c.textContent))</script>
 """
     path = config.config_dir() / "setup.html"

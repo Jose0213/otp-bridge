@@ -1,0 +1,37 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "otp-bridge"
+dynamic = ["version"]
+description = "Autofill one-time codes from your phone's text messages on your Windows PC."
+readme = "README.md"
+license = "MIT"
+requires-python = ">=3.9"
+authors = [{ name = "Jose Franco" }]
+keywords = ["otp", "2fa", "sms", "autofill", "windows", "ios-shortcuts"]
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Operating System :: Microsoft :: Windows",
+    "Environment :: Win32 (MS Windows)",
+    "Topic :: Utilities",
+]
+dependencies = [
+    "pystray>=0.19",
+    "Pillow>=9",
+    "pyperclip>=1.8",
+    "pywin32>=305; sys_platform == 'win32'",
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=7"]
+
+[project.scripts]
+otp-bridge = "otp_bridge.__main__:main"
+
+[tool.setuptools.dynamic]
+version = { attr = "otp_bridge.__version__" }
+
+[tool.setuptools.packages.find]
+where = ["src"]

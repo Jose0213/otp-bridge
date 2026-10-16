@@ -1,0 +1,87 @@
+"""Command line: `otp-bridge [run|setup|test|install-startup|uninstall-startup]`."""
+import argparse
+import logging
+import os
+import secrets
+import sys
+from pathlib import Path
+
+from . import __version__, config, setup_info
+from .extract import extract_code
+
+STARTUP_LINK = Path(os.environ.get("APPDATA", "")) / "Microsoft/Windows/Start Menu/Programs/Startup/OTP Bridge.lnk"
+
+
+def cmd_setup(cfg, args):
+    if args.relay:
+        server = args.relay_server.rstrip("/")
+        cfg["relay_url"] = f"{server}/otp-{secrets.token_hex(12)}"
+        config.save(cfg)
+    elif args.direct_only:
+        cfg["relay_url"] = ""
+        config.save(cfg)
+    print(setup_info.as_text(cfg))
+    if args.relay or args.direct_only:
+        print("\nRestart OTP Bridge for the change to take effect.")
+
+
+def cmd_install_startup():
+    import win32com.client  # pywin32
+
+    pythonw = Path(sys.executable).with_name("pythonw.exe")
+    link = win32com.client.Dispatch("WScript.Shell").CreateShortcut(str(STARTUP_LINK))
+    link.TargetPath = str(pythonw if pythonw.exists() else sys.executable)
+    link.Arguments = "-m otp_bridge"
+    link.WorkingDirectory = str(Path.home())
+    link.Description = "OTP Bridge"
+    link.Save()
+    print(f"OTP Bridge will start when you sign in ({STARTUP_LINK})")
+
+
+def main(argv=None):
+    parser = argparse.ArgumentParser(prog="otp-bridge", description="Autofill one-time codes from your phone's texts.")
+    parser.add_argument("--version", action="version", version=__version__)
+    sub = parser.add_subparsers(dest="cmd")
+    sub.add_parser("run", help="start the tray app (default)")
+    st = sub.add_parser("setup", help="print the URL and token for your phone")
+    st.add_argument("--relay", action="store_true", help="turn on relay mode with a new random ntfy topic")
+    st.add_argument("--relay-server", default="https://ntfy.sh", help="ntfy server for --relay (default ntfy.sh)")
+    st.add_argument("--direct-only", action="store_true", help="turn relay mode off")
+    t = sub.add_parser("test", help="show which code would be pulled out of a message")
+    t.add_argument("message")
+    sub.add_parser("install-startup", help="start OTP Bridge when you sign in")
+    sub.add_parser("uninstall-startup", help="stop starting OTP Bridge at sign-in")
+    args = parser.parse_args(argv)
+
+    if args.cmd == "test":
+        print(extract_code(args.message) or "(no code found)")
+        return
+    if args.cmd == "uninstall-startup":
+        STARTUP_LINK.unlink(missing_ok=True)
+        print("Removed from startup.")
+        return
+    if args.cmd == "install-startup":
+        cmd_install_startup()
+        return
+
+    cfg = config.load()
+    if args.cmd == "setup":
+        cmd_setup(cfg, args)
+        return
+
+    logging.basicConfig(
+        filename=config.config_dir() / "otp-bridge.log",
+        level=logging.INFO,
+        format="%(asctime)s %(levelname)s %(message)s",
+    )
+    from .app import OtpBridge
+
+    try:
+        OtpBridge(cfg).run()
+    except OSError as e:
+        logging.getLogger("otp_bridge").error("could not start: %s (already running?)", e)
+        sys.exit(1)
+
+
+if __name__ == "__main__":
+    main()

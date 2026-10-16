@@ -47,6 +47,15 @@ def changelog_section(ver: str) -> str:
     return match.group(1).strip()
 
 
+def git_auth_args() -> list:
+    """With GH_TOKEN set, have git read it from the environment through a credential
+    helper, so the token never appears in a command line or remote URL."""
+    if not os.environ.get("GH_TOKEN"):
+        return []
+    helper = '!f() { echo username=x-access-token; echo "password=$GH_TOKEN"; }; f'
+    return ["-c", "credential.helper=", "-c", f"credential.helper={helper}"]
+
+
 def repo_slug() -> str:
     url = run("git", "remote", "get-url", "origin", capture=True)
     match = re.search(r"github\.com[:/](.+?)(?:\.git)?$", url)
@@ -91,10 +100,8 @@ The exe isn't code-signed, so Windows SmartScreen may warn the first time. Choos
 
 
 def publish(tag: str, ver: str, slug: str):
-    token = os.environ.get("GH_TOKEN")
     run("git", "tag", "-a", tag, "-m", f"OTP Bridge {ver}")
-    push_url = f"https://x-access-token:{token}@github.com/{slug}.git" if token else "origin"
-    run("git", "-c", "credential.helper=", "push", push_url, tag)
+    run("git", *git_auth_args(), "push", f"https://github.com/{slug}.git", tag)
     notes = DIST / "release-notes.md"
     notes.write_text(release_notes(ver, slug), encoding="utf-8")
     run("gh", "release", "create", tag, str(EXE), str(SUMS), "-R", slug,

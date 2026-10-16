@@ -4,10 +4,13 @@ All notable changes to this project are documented here. The format follows [Kee
 
 ## [Unreleased]
 
+## [0.2.0] - 2026-10-15
+
 ### Added
 - A browser extension for Edge and Chrome (Manifest V3, in `extension/`) that fills one-time-code fields. It recognizes `autocomplete="one-time-code"`, split single-digit boxes, and common field names. It fills only a field you have clicked or typed in, on the visible tab, so a page or ad frame can't receive a code just by showing a code box. Each field is filled once, with a small confirmation.
 - `GET /latest`, a loopback-only endpoint the extension long-polls for the current code. It needs a per-install pairing key, and refuses web page origins and rebinding hostnames.
 - "Copy browser pairing key" in the tray menu, `otp-bridge pair-extension`, and the `extension_key` setting.
+- `OtpBridge-extension.zip` on each release, ready to unzip and load unpacked.
 
 ### Changed
 - The Phone setup page shows the token on its own and asks for a `token` body field, the setup that works on iOS 27. The `Authorization` header is described as an alternative.
@@ -44,6 +47,7 @@ All notable changes to this project are documented here. The format follows [Kee
 - Standalone `OtpBridge.exe` attached to each GitHub release.
 - `otp-bridge setup`, `test`, `install-startup`, and `uninstall-startup` commands, plus a Phone setup page in the tray menu.
 
-[Unreleased]: https://github.com/Jose0213/otp-bridge/compare/v0.1.1...HEAD
+[Unreleased]: https://github.com/Jose0213/otp-bridge/compare/v0.2.0...HEAD
+[0.2.0]: https://github.com/Jose0213/otp-bridge/compare/v0.1.1...v0.2.0
 [0.1.1]: https://github.com/Jose0213/otp-bridge/compare/v0.1.0...v0.1.1
 [0.1.0]: https://github.com/Jose0213/otp-bridge/releases/tag/v0.1.0

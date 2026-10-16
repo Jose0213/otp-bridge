@@ -9,6 +9,8 @@ used for both the tag push and the release.
 """
 import argparse
 import hashlib
+import json
+import zipfile
 import os
 import re
 import subprocess
@@ -19,6 +21,8 @@ ROOT = Path(__file__).resolve().parent.parent
 DIST = ROOT / "dist"
 EXE = DIST / "OtpBridge.exe"
 SUMS = DIST / "SHA256SUMS.txt"
+EXT_DIR = ROOT / "extension"
+EXT_ZIP = DIST / "OtpBridge-extension.zip"
 
 
 def run(*cmd, capture=False):
@@ -76,12 +80,28 @@ def preflight(tag: str):
         sys.exit(f"Tag {tag} already exists. Bump __version__ first.")
 
 
+def check_extension_version(ver: str):
+    manifest = json.loads((EXT_DIR / "manifest.json").read_text(encoding="utf-8"))
+    if manifest.get("version") != ver:
+        sys.exit(f"extension/manifest.json is version {manifest.get('version')}, expected {ver}.")
+
+
+def build_extension_zip():
+    """The extension folder as a zip, ready to unzip and load unpacked."""
+    with zipfile.ZipFile(EXT_ZIP, "w", zipfile.ZIP_DEFLATED) as zf:
+        for path in sorted(EXT_DIR.rglob("*")):
+            if path.is_file():
+                zf.write(path, f"OtpBridge-extension/{path.relative_to(EXT_DIR).as_posix()}")
+
+
 def build():
     run(sys.executable, str(ROOT / "tools/check.py"))
     run(sys.executable, "-m", "PyInstaller", "--noconfirm", "--clean", "packaging/OtpBridge.spec")
-    digest = hashlib.sha256(EXE.read_bytes()).hexdigest()
+    build_extension_zip()
     # LF endings, so `sha256sum -c` works on macOS and Linux too.
-    SUMS.write_bytes(f"{digest}  {EXE.name}\n".encode())
+    SUMS.write_bytes("".join(f"{hashlib.sha256(f.read_bytes()).hexdigest()}  {f.name}\n"
+                             for f in (EXE, EXT_ZIP)).encode())
+    digest = hashlib.sha256(EXE.read_bytes()).hexdigest()
     # Smoke test: the frozen exe must start and parse a message.
     out = subprocess.run([str(EXE), "test", "Your code is 482913"], capture_output=True, text=True, timeout=60, check=False)
     if "482913" not in out.stdout:
@@ -97,6 +117,8 @@ def release_notes(ver: str, slug: str) -> str:
 Download **OtpBridge.exe** below, put it somewhere permanent, and double-click it. To start it at sign-in, run `.\\OtpBridge.exe install-startup`. Then follow the [phone setup](https://github.com/{slug}#phone-setup).
 
 The exe isn't code-signed, so Windows SmartScreen may warn the first time. Choose **More info**, then **Run anyway**. To check your download, compare `Get-FileHash .\\OtpBridge.exe` with `SHA256SUMS.txt`.
+
+For the browser extension, download **OtpBridge-extension.zip**, unzip it, and follow the [extension setup](https://github.com/{slug}#browser-extension-edge-and-chrome).
 """
 
 
@@ -105,7 +127,7 @@ def publish(tag: str, ver: str, slug: str):
     run("git", *git_auth_args(), "push", f"https://github.com/{slug}.git", tag)
     notes = DIST / "release-notes.md"
     notes.write_text(release_notes(ver, slug), encoding="utf-8")
-    run("gh", "release", "create", tag, str(EXE), str(SUMS), "-R", slug,
+    run("gh", "release", "create", tag, str(EXE), str(EXT_ZIP), str(SUMS), "-R", slug,
         "--title", f"OTP Bridge {ver}", "--notes-file", str(notes), "--verify-tag")
     print(f"Published https://github.com/{slug}/releases/tag/{tag}")
 
@@ -119,6 +141,7 @@ def main():
     tag = f"v{ver}"
     slug = repo_slug()
     changelog_section(ver)
+    check_extension_version(ver)
     if not args.dry_run:
         preflight(tag)
     build()

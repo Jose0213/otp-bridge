@@ -234,8 +234,8 @@ The extension fills one-time-code fields for you, so you don't need the hotkey o
 
 **Install (unpacked, until it's in the stores):**
 
-1. Download or clone this repository.
-2. Open `edge://extensions` (or `chrome://extensions`), turn on **Developer mode**, click **Load unpacked**, and choose the `extension` folder.
+1. Download **OtpBridge-extension.zip** from the [latest release](https://github.com/Jose0213/otp-bridge/releases/latest) and unzip it somewhere permanent (the browser loads it from that folder).
+2. Open `edge://extensions` (or `chrome://extensions`), turn on **Developer mode**, click **Load unpacked**, and choose the unzipped `OtpBridge-extension` folder. From a clone of this repository, choose the `extension` folder instead.
 3. The options page opens. Right-click the OTP Bridge tray icon, choose **Copy browser pairing key** (or run `otp-bridge pair-extension`), paste the key, and click **Save**. It should say **Connected**.
 
 **What it fills:** fields marked `autocomplete="one-time-code"`, rows of 4 to 8 one-character boxes, and fields whose name, label, or placeholder says things like "verification code", "OTP", or "2FA". Promo, coupon, ZIP, and phone fields are left alone. Each field is filled once, and a small "Code filled" label confirms it. If you've started typing in the field, it isn't touched.
@@ -247,7 +247,7 @@ The extension fills one-time-code fields for you, so you don't need the hotkey o
 - OTP Bridge answers the extension only on `127.0.0.1`. To the LAN and Tailscale, the endpoint doesn't exist. Web pages can't use it either: the pairing key is required, and requests from a web page's origin or a rebinding hostname are refused.
 - Codes stay in memory in the app and the browser. The extension remembers only a hash of the last filled code, in session memory.
 
-The extension needs two permissions: access to `127.0.0.1` to talk to OTP Bridge, and access to the sites you visit, to find code fields. It sends nothing anywhere else. Like any autofill, it will fill a code field on whatever site is open in front of you, so check the site before you submit.
+The extension needs two permissions: access to `127.0.0.1` to talk to OTP Bridge, and access to the sites you visit, to find code fields. It sends nothing anywhere else. Like any autofill, it fills the code into whatever site you click into, so check the site before you submit.
 
 ## Commands
 

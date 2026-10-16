@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "OTP Bridge",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Fills one-time codes from the OTP Bridge app on this PC into login forms.",
   "permissions": ["storage"],
   "host_permissions": ["http://127.0.0.1/*"],

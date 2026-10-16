@@ -4,18 +4,25 @@ All notable changes to this project are documented here. The format follows [Kee
 
 ## [Unreleased]
 
-### Fixed
-- JSON keys from the phone are matched in any letter case. iOS Shortcuts capitalizes them, so `Text` and `Sender` were ignored and every code came back `null`.
-- Phone setup no longer lists virtual adapters (WSL, Hyper-V, Docker, VMs) that a phone can't reach, and the Tailscale address is listed first.
+## [0.1.1] - 2026-10-15
 
 ### Added
 - The token can also be sent as a `token` field in the JSON body, because iOS 27 Shortcuts can drop the `Authorization` header.
 - An illustrated iOS 27 setup guide, where the trigger lives inside the shortcut, and a ready-made shared shortcut that includes the message trigger.
+- Requests with no code are logged with their body and text lengths (never the content), to help diagnose empty forwards.
 
 ### Changed
-- Rejected requests log which headers arrived and a scheme label, never any part of the token. Stray spaces in the token are ignored.
 - The README no longer suggests turning off Shortcuts notifications, which stops message automations from running.
-- The iPhone setup steps match current iOS.
+- The iPhone setup steps match iOS 27, and the iOS 17 to 26 steps are kept in a collapsible section.
+
+### Fixed
+- JSON keys from the phone are matched in any letter case. iOS Shortcuts capitalizes them, so `Text` and `Sender` were ignored and every code came back `null`.
+- Phone setup no longer lists virtual adapters (WSL, Hyper-V, Docker, VMs) that a phone can't reach, and the Tailscale address is listed first.
+- Stray spaces or line breaks around the token are ignored.
+
+### Security
+- The client address allowlist is checked before the request body is read, and a missing, invalid, or oversized `Content-Length` is rejected.
+- Rejected requests log only which headers arrived and a fixed scheme label, never any part of the token.
 
 ## [0.1.0] - 2026-10-15
 
@@ -28,5 +35,6 @@ All notable changes to this project are documented here. The format follows [Kee
 - Standalone `OtpBridge.exe` attached to each GitHub release.
 - `otp-bridge setup`, `test`, `install-startup`, and `uninstall-startup` commands, plus a Phone setup page in the tray menu.
 
-[Unreleased]: https://github.com/Jose0213/otp-bridge/compare/v0.1.0...HEAD
+[Unreleased]: https://github.com/Jose0213/otp-bridge/compare/v0.1.1...HEAD
+[0.1.1]: https://github.com/Jose0213/otp-bridge/compare/v0.1.0...v0.1.1
 [0.1.0]: https://github.com/Jose0213/otp-bridge/releases/tag/v0.1.0

@@ -8,7 +8,13 @@ All notable changes to this project are documented here. The format follows [Kee
 - JSON keys from the phone are matched in any letter case. iOS Shortcuts capitalizes them, so `Text` and `Sender` were ignored and every code came back `null`.
 - Phone setup no longer lists virtual adapters (WSL, Hyper-V, Docker, VMs) that a phone can't reach, and the Tailscale address is listed first.
 
+### Added
+- The token can also be sent as a `token` field in the JSON body, because iOS 27 Shortcuts can drop the `Authorization` header.
+- An illustrated iOS 27 setup guide, where the trigger lives inside the shortcut.
+
 ### Changed
+- Rejected requests log which headers arrived and a scheme label, never any part of the token. Stray spaces in the token are ignored.
+- The README no longer suggests turning off Shortcuts notifications, which stops message automations from running.
 - The iPhone setup steps match current iOS.
 
 ## [0.1.0] - 2026-10-15

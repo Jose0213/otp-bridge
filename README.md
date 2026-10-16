@@ -73,7 +73,7 @@ The first time OTP Bridge runs, Windows Firewall may ask whether to allow it on 
 1. **Install** OTP Bridge (above) and make sure the tray icon is showing.
 2. **Choose a connection mode** (below). If your phone and PC share Wi-Fi, the default direct mode needs no setup.
 3. **Get your setup values.** Right-click the tray icon, choose **Phone setup…**, and click any value to copy it.
-4. **Set up your phone** using the [iPhone](#iphone-ios-17-or-later) or [Android](#android) steps.
+4. **Set up your phone** using the [iPhone](#iphone-ios-27) or [Android](#android) steps.
 5. **Test it.** Text yourself `Your test code is 123456` from another phone, or use a site's "send code" button. The code should appear in a notification within a couple of seconds.
 
 ## Connection modes
@@ -96,7 +96,88 @@ Run `otp-bridge setup --direct-only` to turn relay mode off again.
 
 ## Phone setup
 
-### iPhone (iOS 17 or later)
+### iPhone (iOS 27)
+
+On iOS 27 an automation is a shortcut with a trigger at the top. You build one shortcut that runs when a text arrives and sends it to your PC. It takes about five minutes, and you need the address and token from **Phone setup** on your PC.
+
+> **Keep Shortcuts notifications on.** iOS shows a short notification whenever a message automation runs. If you turn Shortcuts notifications off in Settings, iOS stops running the automation at all, and no codes arrive. See [Troubleshooting](#troubleshooting) for ways to make the notification less intrusive.
+
+<table>
+<tr>
+<td width="50%" valign="top">
+
+**1. Create the trigger.** Make a new shortcut and add the **Message** trigger. Set **Message contains** to `code`.
+
+</td>
+<td><img src="docs/ios27/01-message-trigger.png" width="220" alt="Shortcut with the When I receive a message trigger, Message contains code"></td>
+</tr>
+<tr>
+<td valign="top">
+
+**2. Add your PC's address.** Search for **Text**, add it, and type the URL from Phone setup, for example `http://192.168.1.20:9233/otp`. It must start with `http://`.
+
+</td>
+<td><img src="docs/ios27/02-address-text.png" width="220" alt="A Text action containing the PC address"></td>
+</tr>
+<tr>
+<td valign="top">
+
+**3. Add your token.** Add a second **Text** action containing only the token, without `Bearer`.
+
+</td>
+<td><img src="docs/ios27/03-token-text.png" width="220" alt="A second Text action containing the token"></td>
+</tr>
+<tr>
+<td valign="top">
+
+**4. Add the request.** Search for **Get Contents of URL** and add it. Tap its URL, choose **Select Variable**, and tap the **first** Text action, the address. Both actions are called "Text", so make sure you tap the right one.
+
+</td>
+<td><img src="docs/ios27/04b-select-variable.png" width="220" alt="Select Variable mode, tapping the first Text action"><br><img src="docs/ios27/04c-url-linked.png" width="220" alt="Get contents of Text, linked to the address"></td>
+</tr>
+<tr>
+<td valign="top">
+
+**5. Set the method.** Change **GET** to **POST**. You can also add the header `Authorization` = `Bearer` + the token, but iOS 27 may not send it, so step 6 puts the token in the body as well.
+
+</td>
+<td><img src="docs/ios27/05-method-header.png" width="220" alt="Method POST with an Authorization header"></td>
+</tr>
+<tr>
+<td valign="top">
+
+**6. Fill in the body.** Under **Request Body** (JSON), add two Text fields:
+
+- `text`: choose **Select Variable**, tap the blue **Message** under the trigger, then tap it again and choose **Content**
+- `token`: choose **Select Variable** and tap the **second** Text action, the token
+
+Key names can be in any letter case.
+
+</td>
+<td><img src="docs/ios27/06b-body-content.png" width="220" alt="Choosing Content from the Message variable"><br><img src="docs/ios27/07-token-in-body.png" width="220" alt="Body with Text set to Content and Token set to the token"></td>
+</tr>
+<tr>
+<td valign="top">
+
+**7. Check that the trigger is on.** Tap the arrow next to **where** in the trigger to show its settings. **Automation** must be on and **Confirm Before Run** off.
+
+</td>
+<td><img src="docs/ios27/08-automation-toggle.png" width="220" alt="Trigger expanded, Automation on and Confirm Before Run off"></td>
+</tr>
+<tr>
+<td valign="top">
+
+**8. Test it.** Tapping **▶** should return `{"code": null}`: your phone reached the PC and the token worked, and it's `null` because a manual run has no message in it. `unauthorized` means the token is wrong. Then text yourself `Your test code is 123456`; the code should appear on your PC within a couple of seconds.
+
+</td>
+<td></td>
+</tr>
+</table>
+
+To also catch texts like "Your OTP is…", add a second **Message** trigger with `OTP`. Duplicate forwards of the same code are ignored. If you use Tailscale, turn on **VPN On Demand** in the Tailscale app so the phone stays connected.
+
+<details>
+<summary><b>iPhone on iOS 17 to 26</b></summary>
 
 1. Open **Shortcuts**, go to the **Automation** tab, tap **+**, and choose **Message**. It's in the list of triggers, not in the actions search.
 2. Under **Message Contains**, enter `code`. This also matches "passcode". Leave **Sender** as anyone.
@@ -106,14 +187,15 @@ Run `otp-bridge setup --direct-only` to turn relay mode off again.
 6. Show the action's options and set:
    - **Method**: `POST`
    - **Headers**: add `Authorization` with the value `Bearer`, a space, and your token, for example `Bearer 28UKJHxxxx`. No brackets. (Direct mode only.)
-   - **Request Body**: `JSON`, with two Text fields:
+   - **Request Body**: `JSON`, with these Text fields:
      - `text`: set the value to the **Message** variable
+     - `token`: your token (needed if iOS drops the header; harmless otherwise)
      - `sender`: set the value to the **Message** variable, then tap it and choose **Sender** (optional)
 
    Key names can be in any letter case.
 7. Tap **▶** to test. A response of `{"code": null}` means your phone reached the PC; it's `null` only because a manual run has no message in it. `unauthorized` means the token or header is wrong.
 
-To also catch texts like "Your OTP is…", add a second automation with `OTP` as the word. Duplicate forwards of the same code are ignored. If you use Tailscale, turn on **VPN On Demand** in the Tailscale app so the phone stays connected.
+</details>
 
 ### Android
 
@@ -159,7 +241,8 @@ Settings are stored in `%APPDATA%\otp-bridge\config.json`. Open that folder from
 - Same Wi-Fi: check that the phone isn't on mobile data, and that the URL is your PC's local address, not the Tailscale one.
 - Tailscale: check that Tailscale is connected on both devices.
 - Open `http://<your-pc-address>:9233/health` in the phone's browser. If it doesn't load, Windows Firewall is blocking the connection; allow OTP Bridge (or Python) on private networks.
-- Read `%APPDATA%\otp-bridge\otp-bridge.log`. A `rejected request` line means the token in the phone's header doesn't match `config.json`.
+- Check that Shortcuts notifications are allowed on the phone. Message automations don't run without them.
+- Read `%APPDATA%\otp-bridge\otp-bridge.log`. A `bad token` line means the token didn't match `config.json`; it lists which headers arrived, so `auth scheme=none` means the phone sent no Authorization header (put the token in the body instead).
 
 </details>
 
@@ -180,11 +263,14 @@ Another app may already use that shortcut. The tray menu shows "(unavailable)" n
 <details>
 <summary><b>The iPhone shows a "Running your automation" notification every time</b></summary>
 
-iOS always shows a notification when a **Message** automation runs. Apple requires it for message, email, Wi-Fi, Bluetooth, and location triggers, so the **Notify When Run** switch doesn't appear, and it can't be turned off for a single automation. Your options all affect every Shortcuts notification:
+iOS always shows a notification when a **Message** automation runs. Apple requires it for message, email, Wi-Fi, Bluetooth, and location triggers, so there's no switch to turn it off for a single automation.
 
-- **Bundle them:** Settings → Notifications → **Scheduled Summary** → add **Shortcuts**. The banners stop interrupting you and arrive in your summary instead. Prompts from automations set to **Confirm Before Run** may be held for the summary too.
+**Don't turn Shortcuts notifications off.** If you disable them in Settings → Screen Time, iOS stops running message automations entirely, and no codes reach your PC. We confirmed this on iOS 27: codes stopped arriving when notifications were turned off and came back as soon as they were turned on.
+
+Options that keep the automation running:
+
+- **Bundle them:** Settings → Notifications → **Scheduled Summary** → add **Shortcuts**. The banners arrive in your summary instead of interrupting you. Notifications stay allowed, so automations should keep running, but this hasn't been tested yet. Send yourself a test code after turning it on. Prompts from automations set to **Confirm Before Run** may be held for the summary too.
 - **Hide them in a Focus:** in a Focus you use (Settings → Focus), silence the Shortcuts app. Banners are hidden only while that Focus is on.
-- **Turn them off:** Settings → **Screen Time** → **See All App & Website Activity** → scroll to **Notifications** → **Shortcuts** → turn off **Allow Notifications**. This silences every Shortcuts notification. Automations set to **Confirm Before Run** rely on a notification to ask you, so they will stop prompting; only do this if all your automations run without confirmation.
 
 </details>
 
@@ -211,7 +297,7 @@ Macs already have this built in for iPhones. Linux support would be welcome; see
 
 ## API
 
-To build your own sender, send `POST /otp` with `Authorization: Bearer <token>` and either JSON `{"text": "...", "sender": "..."}` or a plain-text body. The response is `{"code": "482913"}`, or `{"code": null}` when the message has no code. `GET /health` returns `{"ok": true}`.
+To build your own sender, send `POST /otp` with the token as `Authorization: Bearer <token>`, an `X-OTP-Token` header, or a `token` field in the JSON body, and either JSON `{"text": "...", "sender": "..."}` or a plain-text body. The response is `{"code": "482913"}`, or `{"code": null}` when the message has no code. `GET /health` returns `{"ok": true}`.
 
 ## Contributing
 

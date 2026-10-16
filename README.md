@@ -100,11 +100,13 @@ Run `otp-bridge setup --direct-only` to turn relay mode off again.
 
 #### Quick setup with the ready-made shortcut (recommended)
 
+This takes two pieces: the shared **shortcut**, which sends the text to your PC, and an **automation** you make yourself, which runs the shortcut when a text arrives. Apple doesn't allow automations to be shared, so step 3 onward is done on every phone.
+
 1. On your iPhone, open **[Send to OTP Bridge](https://www.icloud.com/shortcuts/8952a3cbdf854419b68fcf5488eef1fe)** and tap **Add Shortcut**.
 2. It asks two questions. Answer them with the values from **Phone setup** on your PC:
    - **Your PC's address**: the URL, for example `http://192.168.1.20:9233/otp`
    - **Your token**: the token only, without `Bearer`
-3. In Shortcuts, go to the **Automation** tab, tap **+**, and choose **Message**.
+3. **Now make the automation.** In Shortcuts, go to the **Automation** tab, tap **+**, and choose **Message**.
 4. Under **Message Contains**, enter `code`. Choose **Run Immediately** (on newer iOS, turn **Confirm Before Run** off). Tap **Next**, then **New Blank Automation**. iOS shows a short notification each time it runs; see [Troubleshooting](#troubleshooting) to quiet it.
 5. Tap **Add Action**, search for **Run Shortcut**, and choose **Send to OTP Bridge**. Set its **Input** to the **Message** variable, then tap it and choose **Content**.
 6. Text yourself `Your test code is 123456`. The code should appear on your PC within a couple of seconds.
